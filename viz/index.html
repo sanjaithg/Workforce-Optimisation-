@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workforce Simulation Viewer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="brand">
+    <h1>Workforce Simulation Viewer</h1>
+    <p class="sub" id="runmeta">Load a trace JSON to begin</p>
+  </div>
+  <div class="loader">
+    <label class="filebtn">Load trace<input type="file" id="file" accept="application/json"></label>
+    <label class="filebtn secondary">Compare<input type="file" id="fileB" accept="application/json"></label>
+    <span class="hint">generate with <code>run_sim.py --trace out/run.json</code></span>
+  </div>
+</header>
+
+<section class="controls">
+  <button id="play">▶ Play</button>
+  <input type="range" id="scrub" min="0" max="100" value="0">
+  <span class="clock" id="clock">--:--</span>
+  <label class="speed">speed
+    <select id="speed">
+      <option value="1">1x</option>
+      <option value="4" selected>4x</option>
+      <option value="16">16x</option>
+      <option value="64">64x</option>
+    </select>
+  </label>
+  <span class="regime" id="regime"></span>
+</section>
+
+<main>
+  <section class="panel kpis">
+    <h2>KPIs at this moment</h2>
+    <div class="kpigrid" id="kpigrid"></div>
+    <div class="chartwrap">
+      <svg id="chart" viewBox="0 0 720 190" preserveAspectRatio="none"></svg>
+      <div class="legend">
+        <span><i class="sw queue"></i>queue</span>
+        <span><i class="sw util"></i>utilisation</span>
+        <span><i class="sw overdue"></i>overdue</span>
+        <span><i class="sw breach"></i>breached</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Synthetic feedback &amp; outcomes <span class="tag">sparse · delayed · synthetic</span></h2>
+    <div class="kpigrid" id="fbgrid"></div>
+    <p class="empty">CSAT/NPS are generated from latent service experience and sampled
+    sparsely with a delivery delay. They are synthetic instruments, not IRCTC data,
+    and the agent sees only responses delivered by the current clock time.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Departments</h2>
+    <table class="depttable">
+      <thead><tr><th>Dept</th><th>Queue</th><th>Overdue</th><th>Busy</th><th>Free</th><th>Absent</th><th>Load</th></tr></thead>
+      <tbody id="depts"></tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>Stations</h2>
+    <div class="stations" id="stations"></div>
+  </section>
+
+  <section class="panel feed">
+    <h2>Event feed <span class="tag">cascades highlighted</span></h2>
+    <div id="events"></div>
+  </section>
+
+  <section class="panel feed">
+    <h2>Recent decisions</h2>
+    <div id="decisions"></div>
+  </section>
+
+  <section class="panel" id="comparepanel" hidden>
+    <h2>Policy comparison</h2>
+    <div id="compare"></div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

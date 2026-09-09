@@ -1,0 +1,14 @@
+simpy>=4.1
+gymnasium>=0.29
+numpy>=1.26
+scipy>=1.11
+pandas>=2.0
+pyyaml>=6.0
+matplotlib>=3.8
+pytest>=8.0
+
+# Optional, only needed for the gated PPO phase:
+# stable-baselines3>=2.3
+# sb3-contrib>=2.3
+# Optional, only for process-mining analysis of generated event logs:
+# pm4py>=2.7

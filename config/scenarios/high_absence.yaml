@@ -1,0 +1,103 @@
+# Scenario 5 — high absenteeism: normal demand, badly depleted roster.
+# Expressed as deltas from normal_weekday.yaml; everything unstated is the reference value.
+scenario:
+  id: high_absence
+  name: "High absenteeism"
+  domain: southern_railway
+  start_date: "2026-03-02"
+  duration_days: 1
+  seed: 0
+
+demand:
+  multiplier: 1.0
+  festival_mode: false
+  # Latent log-intensity AR(1): temporal correlation in demand, not white noise.
+  ar1_phi: 0.7
+  ar1_sigma: 0.12
+  # Negative-binomial dispersion. Lower k = more overdispersed than Poisson.
+  dispersion_k: 8.0
+  # Multiplicative day-of-week profile, Mon..Sun. [SYNTH]
+  weekday_profile: [1.00, 0.96, 0.95, 0.98, 1.18, 1.22, 1.10]
+  # Intraday passenger-pressure profile by hour (24 values), peaked at commute
+  # times. Drives footfall and hence station workload. [SYNTH]
+  hourly_profile: [0.25, 0.15, 0.10, 0.10, 0.20, 0.55, 0.95, 1.35, 1.45, 1.10,
+                   0.85, 0.80, 0.85, 0.90, 0.95, 1.05, 1.25, 1.50, 1.55, 1.30,
+                   1.00, 0.80, 0.60, 0.40]
+  unreserved_ratio: 0.55            # unreserved demand relative to reserved
+  platform_ticket_ratio: 0.18       # platform tickets relative to footfall
+
+workforce:
+  multiplier: 1.0
+  absence_rate_multiplier: 3.2
+  reserve_available: true
+  overtime_allowed: true
+
+disruptions:
+  # Baseline hourly rates per location. [SYNTH]
+  asset_failure_rate: 0.010
+  train_delay_rate: 0.045
+  demand_spike_rate: 0.010
+  # Hawkes self-excitation: each event raises the short-term rate of further
+  # events, producing cascades rather than independent blips.
+  # branching_ratio = expected direct offspring per event; MUST be < 1 or the
+  # disruption process is non-stationary and explodes.
+  hawkes_branching_ratio: 0.25
+  hawkes_spread_fraction: 0.25   # share of branching mass leaking to neighbours
+  hawkes_beta: 0.9                  # decay per hour
+  severity_median: 35.0             # minutes of extra work per disruption
+  severity_sigma: 0.6
+  severity_tail_prob: 0.04          # rare severe events
+  severity_tail_alpha: 1.6
+
+drift:
+  enabled: false
+  regimes:
+    normal:   {demand_mult: 1.00, failure_mult: 1.00}
+    pressure: {demand_mult: 1.25, failure_mult: 1.40}
+  transition_prob_per_hour: 0.0
+
+reward:
+  w_wait: 0.020
+  w_sla: 1.20
+  w_cost: 0.010
+  w_overtime: 0.020
+  w_backlog: 0.030
+  w_throughput: 0.60
+  w_balance: 0.30
+
+# ---------------------------------------------------------------------------
+# SYNTHETIC FEEDBACK / OUTCOME LAYER
+# These signals are sparse or not consistently available in public railway data,
+# so the simulator generates them. They are NOT sourced from IRCTC, Indian
+# Railways, or any real customer-feedback system, and must not be presented as
+# such. Every value below is [SYNTH] and configurable.
+feedback:
+  # Latent service experience: the hidden variable behind CSAT/NPS. Never observed
+  # by the agent; only sparse, delayed surveys of it are.
+  experience:
+    baseline: 0.78
+    wait_weight: 0.42
+    breach_penalty: 0.22
+    crowding_weight: 0.20
+    delay_weight: 0.18
+    quality_weight: 0.16
+    rework_penalty: 0.12
+    noise_sigma: 0.09
+  # Survey instrument. Sparse (few interactions answer) and delayed (responses
+  # arrive hours later), so NPS/CSAT are a slow partial signal, not a dense reward.
+  surveys:
+    enabled: true
+    response_rate: 0.06
+    detractor_response_boost: 2.2     # unhappy customers respond more -> biased sample
+    delay_median_minutes: 150.0
+    delay_sigma: 0.7
+    csat_noise: 0.55
+    nps_noise: 1.1
+  # Operational cost rates, in abstract cost units (not rupees: a fabricated
+  # currency figure would imply precision we do not have).
+  costs:
+    reserve_activation: 45.0
+    sla_breach: 12.0
+    disruption_response: 8.0
+    idle_capacity_per_hour: 0.25
+    rework: 6.0

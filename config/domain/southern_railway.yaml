@@ -1,0 +1,253 @@
+# Southern Railway (Chennai division subset) — INITIAL DOMAIN CONFIGURATION.
+#
+# This file is a *skin* over the generic entities in simulation/entities/core.py.
+# Swapping it for hospital.yaml or factory.yaml changes the domain without
+# touching the engine.
+#
+# PROVENANCE OF NUMBERS
+#   [FACT]   Southern Railway comprises 6 divisions (Chennai, Tiruchirappalli,
+#            Madurai, Thiruvananthapuram, Palakkad, Salem), ~727 stations,
+#            ~5081 route-km, HQ Chennai.
+#            Source: https://en.wikipedia.org/wiki/Southern_Railway_zone
+#            Station names below are real stations on the Chennai suburban/main
+#            network.
+#   [SYNTH]  EVERY numeric parameter below (capacities, staffing, task rates,
+#            failure rates, costs, durations) is INVENTED for this study. They are
+#            chosen to be operationally plausible and internally consistent, NOT
+#            calibrated against Southern Railway's real figures. This world is a
+#            research testbed, not a digital twin.
+
+domain:
+  id: southern_railway_chennai_subset
+  name: "Southern Railway — Chennai division subset"
+  timezone_offset_hours: 5.5
+
+departments:
+  - {id: OPS, name: "Operations (station & control)"}
+  - {id: COM, name: "Commercial / Passenger services"}
+  - {id: MNT, name: "Maintenance (track, S&T, rolling stock)"}
+  - {id: SUP, name: "Support (cleaning, security)"}
+
+skills:
+  - {id: station_ops,     name: "Station operations",        department_id: OPS}
+  - {id: traffic_control, name: "Traffic / control",         department_id: OPS}
+  - {id: ticketing,       name: "Ticketing & reservation",   department_id: COM}
+  - {id: ticket_checking, name: "Ticket checking",           department_id: COM}
+  - {id: passenger_svc,   name: "Passenger services",        department_id: COM}
+  - {id: track_civil,     name: "Track / civil maintenance", department_id: MNT}
+  - {id: signal_telecom,  name: "Signal & telecom",          department_id: MNT}
+  - {id: rolling_stock,   name: "Rolling stock",             department_id: MNT}
+  - {id: electrical,      name: "Electrical",                department_id: MNT}
+  - {id: cleaning,        name: "Cleaning / housekeeping",   department_id: SUP}
+  - {id: security,        name: "Security",                  department_id: SUP}
+
+# Qualifications are HARD constraints enforced by action masking, never by a
+# reward penalty: an unqualified worker is not a cheap choice, it is an illegal one.
+qualifications:
+  - {id: safety_cert,      name: "Safety certification"}
+  - {id: high_voltage,     name: "High-voltage authorisation"}
+  - {id: signal_authority, name: "Signalling authority"}
+
+roles:
+  - id: station_master
+    name: "Station operations supervisor"
+    department_id: OPS
+    skills: {station_ops: 0.85, traffic_control: 0.55}
+    qualifications: [safety_cert]
+    hourly_cost: 4.2
+  - id: ops_assistant
+    name: "Operations assistant"
+    department_id: OPS
+    skills: {station_ops: 0.6}
+    qualifications: []
+    hourly_cost: 2.4
+  - id: controller
+    name: "Traffic controller"
+    department_id: OPS
+    skills: {traffic_control: 0.85, station_ops: 0.4}
+    qualifications: [safety_cert]
+    hourly_cost: 4.6
+  - id: booking_clerk
+    name: "Booking / reservation clerk"
+    department_id: COM
+    skills: {ticketing: 0.8, passenger_svc: 0.5}
+    qualifications: []
+    hourly_cost: 2.6
+  - id: ticket_examiner
+    name: "Travelling ticket examiner"
+    department_id: COM
+    skills: {ticket_checking: 0.85, passenger_svc: 0.45}
+    qualifications: []
+    hourly_cost: 3.0
+  - id: passenger_assistant
+    name: "Passenger services assistant"
+    department_id: COM
+    skills: {passenger_svc: 0.75, ticketing: 0.35}
+    qualifications: []
+    hourly_cost: 2.2
+  - id: track_technician
+    name: "Track / civil technician"
+    department_id: MNT
+    skills: {track_civil: 0.8}
+    qualifications: [safety_cert]
+    hourly_cost: 3.4
+  - id: signal_technician
+    name: "Signal & telecom technician"
+    department_id: MNT
+    skills: {signal_telecom: 0.82, electrical: 0.4}
+    qualifications: [safety_cert, signal_authority]
+    hourly_cost: 4.0
+  - id: rolling_stock_fitter
+    name: "Rolling stock fitter"
+    department_id: MNT
+    skills: {rolling_stock: 0.8, electrical: 0.45}
+    qualifications: [safety_cert]
+    hourly_cost: 3.6
+  - id: electrician
+    name: "Electrician"
+    department_id: MNT
+    skills: {electrical: 0.85, signal_telecom: 0.35}
+    qualifications: [safety_cert, high_voltage]
+    hourly_cost: 3.8
+  - id: cleaner
+    name: "Cleaning staff"
+    department_id: SUP
+    skills: {cleaning: 0.7}
+    qualifications: []
+    hourly_cost: 1.6
+  - id: security_guard
+    name: "Security staff"
+    department_id: SUP
+    skills: {security: 0.75}
+    qualifications: []
+    hourly_cost: 1.9
+
+# Role mix within each department. Uniform assignment would leave scarce
+# specialists (ticket examiners, signal technicians) unable to cover the work
+# volume that actually requires them, so the mix reflects the work mix. [SYNTH]
+role_mix:
+  OPS: {station_master: 0.22, ops_assistant: 0.62, controller: 0.16}
+  COM: {booking_clerk: 0.38, ticket_examiner: 0.42, passenger_assistant: 0.20}
+  MNT: {track_technician: 0.32, signal_technician: 0.28, rolling_stock_fitter: 0.24, electrician: 0.16}
+  SUP: {cleaner: 0.66, security_guard: 0.34}
+
+# Cross-training: a fraction of workers get a secondary skill outside their role,
+# which is what makes multi-skill reassignment a meaningful lever for the agent.
+cross_training:
+  probability: 0.25
+  secondary_proficiency_range: [0.3, 0.6]
+
+shifts:
+  - {id: morning, name: "Morning",   start_hour: 6.0,  duration_hours: 8.0}
+  - {id: evening, name: "Evening",   start_hour: 14.0, duration_hours: 8.0}
+  - {id: night,   name: "Night",     start_hour: 22.0, duration_hours: 8.0}
+
+# tier 1 = major terminus, 3 = small halt. Tier scales demand and staffing.
+# [FACT] station names are real; [SYNTH] tier/platform/staffing numbers are invented.
+locations:
+  - {id: MAS, name: "Chennai Central",        tier: 1, platforms: 12}
+  - {id: MS,  name: "Chennai Egmore",         tier: 1, platforms: 11}
+  - {id: TBM, name: "Tambaram",               tier: 2, platforms: 8}
+  - {id: AVD, name: "Avadi",                  tier: 2, platforms: 4}
+  - {id: PER, name: "Perambur",               tier: 3, platforms: 4}
+  - {id: AJJ, name: "Arakkonam",              tier: 2, platforms: 6}
+  - {id: CGL, name: "Chengalpattu",           tier: 2, platforms: 6}
+  - {id: TI,  name: "Tiruvallur",             tier: 3, platforms: 3}
+  - {id: GDR, name: "Gudur",                  tier: 3, platforms: 4}
+  - {id: VLR, name: "Katpadi",                tier: 2, platforms: 5}
+  - {id: MSB, name: "Chennai Beach",          tier: 2, platforms: 5}
+  - {id: KOK, name: "Korukkupet",             tier: 3, platforms: 2}
+
+# Travel time in minutes between locations, for reassignment cost. [SYNTH]
+travel_minutes:
+  MAS: {MS: 12, PER: 15, MSB: 10, TBM: 45, AVD: 40, KOK: 18}
+  MS:  {MAS: 12, TBM: 40, CGL: 70, MSB: 14}
+  TBM: {MAS: 45, MS: 40, CGL: 35}
+  AVD: {MAS: 40, TI: 25, AJJ: 45}
+  PER: {MAS: 15, AVD: 30, KOK: 10}
+  AJJ: {AVD: 45, VLR: 50, TI: 35}
+  CGL: {TBM: 35, MS: 70}
+  TI:  {AVD: 25, AJJ: 35}
+  GDR: {MAS: 150}
+  VLR: {AJJ: 50}
+  MSB: {MAS: 10, MS: 14}
+  KOK: {MAS: 18, PER: 10}
+
+classes:
+  - {id: AC2,  name: "AC 2-tier",   capacity_per_train: 46,  fare_index: 3.2}
+  - {id: AC3,  name: "AC 3-tier",   capacity_per_train: 72,  fare_index: 2.2}
+  - {id: SL,   name: "Sleeper",     capacity_per_train: 288, fare_index: 1.0}
+  - {id: UR,   name: "Unreserved",  capacity_per_train: 300, fare_index: 0.5}
+
+# RAC buffer sizing, as a fraction of reserved capacity. [SYNTH parameter,
+# mechanism grounded in publicly documented PRS behaviour: RAC is the first
+# overflow buffer beyond confirmed berths, WL is everything past it.]
+booking:
+  rac_fraction: 0.08
+  cancellation_rate: 0.14          # aggregate fraction of bookings cancelled pre-departure
+  booking_window_days: 30
+  # Booking curve: share of demand arriving per day-before-departure bucket.
+  # Front-loaded with a last-minute spike (Tatkal-like). [SYNTH]
+  booking_curve:
+    "30-15": 0.28
+    "14-8": 0.24
+    "7-3": 0.22
+    "2-1": 0.14
+    "0": 0.12
+
+# [FACT] train names/numbers below are real Southern Railway services.
+# [SYNTH] base_demand is calibrated so reserved classes run at or above berth
+# capacity, which is the regime in which RAC/WL actually form. Popular Indian
+# Railways services are routinely oversubscribed; a world where nothing ever
+# waitlists would make the WL pressure signal meaningless.
+# [SYNTH] every operational parameter attached to them (dep_hour, coach counts
+# implied by class capacities, base_demand) is invented.
+trains:
+  - {id: "12621", name: "Tamil Nadu Express",      origin: MAS, destination: GDR, dep_hour: 22.0, base_demand: 1060, classes: [AC2, AC3, SL, UR]}
+  - {id: "12615", name: "Grand Trunk Express",     origin: MAS, destination: GDR, dep_hour: 19.2, base_demand: 980, classes: [AC2, AC3, SL, UR]}
+  - {id: "12635", name: "Vaigai Express",          origin: MS,  destination: CGL, dep_hour: 13.4, base_demand: 760, classes: [AC3, SL, UR]}
+  - {id: "12639", name: "Brindavan Express",       origin: MAS, destination: VLR, dep_hour: 7.2,  base_demand: 880, classes: [AC3, SL, UR]}
+  - {id: "12007", name: "Shatabdi Express",        origin: MAS, destination: VLR, dep_hour: 6.0,  base_demand: 600, classes: [AC2, AC3]}
+  - {id: "16101", name: "Coastal Express",         origin: MS,  destination: CGL, dep_hour: 8.5,  base_demand: 680, classes: [SL, UR]}
+  - {id: "12163", name: "Dadar Chennai Express",   origin: MAS, destination: AJJ, dep_hour: 17.0, base_demand: 800, classes: [AC2, AC3, SL, UR]}
+  - {id: "16057", name: "Sapthagiri Express",      origin: MAS, destination: VLR, dep_hour: 6.4,  base_demand: 700, classes: [SL, UR]}
+  - {id: "12695", name: "Trivandrum Express",      origin: MAS, destination: CGL, dep_hour: 15.3, base_demand: 900, classes: [AC2, AC3, SL, UR]}
+  - {id: "16053", name: "Tirupati Express",        origin: MAS, destination: GDR, dep_hour: 5.5,  base_demand: 640, classes: [SL, UR]}
+
+# Suburban/local services are modelled as an aggregate arrival rate per station
+# rather than individually, since they drive footfall not reservations. [SYNTH]
+suburban:
+  arrivals_per_hour_by_tier: {1: 26, 2: 14, 3: 7}
+
+# Assets that can fail and spawn maintenance work. [SYNTH]
+assets:
+  per_location_by_tier:
+    1: {signal: 6, track_circuit: 5, escalator: 4, lighting: 5, coach_rake: 3}
+    2: {signal: 3, track_circuit: 3, escalator: 1, lighting: 3, coach_rake: 1}
+    3: {signal: 2, track_circuit: 2, escalator: 0, lighting: 2, coach_rake: 0}
+  asset_skill_map:
+    signal: signal_telecom
+    track_circuit: signal_telecom
+    escalator: electrical
+    lighting: electrical
+    coach_rake: rolling_stock
+
+# Baseline workforce establishment per tier, per department. [SYNTH]
+workforce:
+  # This is the TASK-FACING establishment: staff available for the modelled,
+  # dispatchable work, not a station's total employee count. Sized so the
+  # reference scenario runs at realistic load rather than idle or saturated.
+  # Scaled to the tier footfall profile (roughly 8:3:1), not a flat ratio:
+  # tier-1 termini generate far more counter work per station than their
+  # headcount would cover under a gentler staffing curve.
+  headcount_per_location_by_tier:
+    1: {OPS: 16, COM: 26, MNT: 12, SUP: 18}
+    2: {OPS: 6,  COM: 8,  MNT: 5,  SUP: 6}
+    3: {OPS: 3,  COM: 3,  MNT: 2,  SUP: 3}
+  reserve_pool_fraction: 0.12        # off-roster staff the agent can activate
+  absence_base_rate: 0.06
+  absence_concentration: 12.0        # Beta concentration; lower = more heterogeneous
+  overtime_cost_multiplier: 1.75
+  max_overtime_minutes_per_shift: 120
+  max_travel_minutes: 45          # location constraint on dispatch [SYNTH]
+  experience_years_range: [0.5, 25.0]

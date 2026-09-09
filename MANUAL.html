@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Simulator Field Manual</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  /* ---------------------------------------------------------------- tokens */
+  :root{
+    --bg:#EEF0EA;
+    --surface:#FBFAF6;
+    --surface-2:#E3E6DD;
+    --border:#C9CDBE;
+    --border-strong:#AFB5A2;
+    --text:#1C231F;
+    --text-dim:#5B6459;
+    --text-faint:#838C7E;
+    --accent:#1F5C82;
+    --accent-strong:#154A6A;
+    --accent-soft:#D9E6EC;
+    --ok:#2F6B3E;
+    --ok-soft:#DCEBDD;
+    --warn:#9C5F0A;
+    --warn-soft:#F3E4C9;
+    --danger:#A33327;
+    --danger-soft:#F3DAD6;
+    --shadow: 0 1px 2px rgba(28,35,31,0.06), 0 6px 20px -8px rgba(28,35,31,0.12);
+    --radius: 5px;
+    --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+    --body: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#10161A;
+      --surface:#171F24;
+      --surface-2:#1E282E;
+      --border:#2E3A40;
+      --border-strong:#3C4A51;
+      --text:#E7EDE9;
+      --text-dim:#9AA8A1;
+      --text-faint:#6E7B75;
+      --accent:#74B4DA;
+      --accent-strong:#9BCBE8;
+      --accent-soft:#1C3644;
+      --ok:#6FCB84;
+      --ok-soft:#163322;
+      --warn:#E0A94B;
+      --warn-soft:#3A2B10;
+      --danger:#E2776A;
+      --danger-soft:#3A1D18;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 28px -10px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#10161A; --surface:#171F24; --surface-2:#1E282E; --border:#2E3A40; --border-strong:#3C4A51;
+    --text:#E7EDE9; --text-dim:#9AA8A1; --text-faint:#6E7B75;
+    --accent:#74B4DA; --accent-strong:#9BCBE8; --accent-soft:#1C3644;
+    --ok:#6FCB84; --ok-soft:#163322; --warn:#E0A94B; --warn-soft:#3A2B10; --danger:#E2776A; --danger-soft:#3A1D18;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 28px -10px rgba(0,0,0,0.5);
+  }
+
+  /* ------------------------------------------------------------------ base */
+  *{box-sizing:border-box;}
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:var(--body); font-size:16.5px; line-height:1.62;
+  }
+  h1,h2,h3,h4{ font-family:var(--display); font-weight:700; text-wrap:balance; margin:0; color:var(--text); }
+  a{ color:var(--accent); text-decoration-thickness:1px; text-underline-offset:2px; }
+  a:focus-visible, button:focus-visible, .toc a:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:2px; }
+  code, .mono{ font-family:var(--mono); }
+  p{ margin:0 0 1em; max-width:66ch; }
+  p:last-child{ margin-bottom:0; }
+  .eyebrow{
+    font-family:var(--display); font-weight:600; font-size:12.5px; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--accent);
+  }
+  ::selection{ background:var(--accent-soft); }
+
+  /* --------------------------------------------------------------- layout */
+  .layout{
+    display:grid; grid-template-columns: 236px minmax(0,1fr); gap:0;
+    max-width:1180px; margin:0 auto;
+  }
+  .toc{
+    position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+    padding:28px 18px 40px 28px; border-right:1px solid var(--border);
+  }
+  .toc-title{ font-family:var(--display); font-weight:700; font-size:13px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--text-faint); margin-bottom:14px; }
+  .toc ol{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; }
+  .toc a{
+    display:flex; gap:9px; align-items:baseline; padding:6px 8px; border-radius:4px;
+    color:var(--text-dim); text-decoration:none; font-size:14px; line-height:1.35;
+  }
+  .toc a:hover{ background:var(--surface-2); color:var(--text); }
+  .toc a.active{ background:var(--accent-soft); color:var(--accent-strong); font-weight:600; }
+  .toc .n{ font-family:var(--mono); font-size:12px; color:var(--text-faint); min-width:1.4em; }
+  .toc a.active .n{ color:var(--accent-strong); }
+
+  main{ padding:0 0 90px; min-width:0; }
+
+  /* ---------------------------------------------------------------- head */
+  .masthead{ padding:40px 48px 30px; border-bottom:1px solid var(--border); }
+  .masthead h1{ font-size:44px; line-height:1.03; margin:8px 0 10px; letter-spacing:.002em; }
+  .masthead .scope{ font-family:var(--body); font-size:17px; color:var(--text-dim); max-width:62ch; margin:0 0 20px; }
+  .caution{
+    display:flex; gap:12px; align-items:flex-start; background:var(--warn-soft);
+    border:1px solid var(--border);
+    border-left:4px solid var(--warn); border-radius:var(--radius); padding:12px 16px; max-width:74ch;
+  }
+  .caution .tag{ font-family:var(--display); font-weight:700; font-size:12px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--warn); white-space:nowrap; padding-top:2px; }
+  .caution p{ margin:0; font-size:14.5px; color:var(--text); }
+  .facts{ display:flex; flex-wrap:wrap; gap:0; margin-top:24px; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+  .facts .fact{ flex:1 1 120px; padding:10px 16px; border-right:1px solid var(--border); background:var(--surface); }
+  .facts .fact:last-child{ border-right:none; }
+  .facts .fact .v{ font-family:var(--mono); font-weight:600; font-size:18px; color:var(--accent-strong); font-variant-numeric:tabular-nums; }
+  .facts .fact .k{ font-size:11.5px; color:var(--text-dim); margin-top:2px; }
+
+  /* ------------------------------------------------------------- chapter */
+  .chapter{ padding:44px 48px; border-bottom:1px solid var(--border); scroll-margin-top:20px; }
+  .chapter:last-child{ border-bottom:none; }
+  .chapter-head{ display:flex; align-items:baseline; gap:16px; margin-bottom:22px; }
+  .chapter-num{ font-family:var(--mono); font-size:15px; color:var(--accent); font-weight:600; letter-spacing:.02em; }
+  .chapter h2{ font-size:28px; letter-spacing:.001em; }
+  .chapter > .lede{ font-size:17px; color:var(--text-dim); max-width:68ch; margin-bottom:22px; }
+  .chapter h3{ font-size:19px; margin:30px 0 12px; color:var(--text); }
+  .chapter h3:first-of-type{ margin-top:0; }
+  .prose{ max-width:68ch; }
+  .prose p, .prose ul{ max-width:68ch; }
+  .prose ul{ margin:0 0 1em; padding-left:1.3em; }
+  .prose li{ margin-bottom:.45em; }
+  .prose li:last-child{ margin-bottom:0; }
+
+  /* ------------------------------------------------------------ callouts */
+  .callout{ border-radius:var(--radius); border:1px solid var(--border); border-left:4px solid var(--accent);
+    background:var(--surface); padding:14px 18px; margin:18px 0; max-width:70ch; break-inside:avoid; }
+  .callout p{ margin:0; font-size:15px; }
+  .callout .tag{ display:block; font-family:var(--display); font-weight:700; font-size:11.5px;
+    letter-spacing:.08em; text-transform:uppercase; margin-bottom:5px; }
+  .callout.note{ border-left-color:var(--accent); background:var(--accent-soft); }
+  .callout.note .tag{ color:var(--accent-strong); }
+  .callout.ok{ border-left-color:var(--ok); background:var(--ok-soft); }
+  .callout.ok .tag{ color:var(--ok); }
+  .callout.warn{ border-left-color:var(--warn); background:var(--warn-soft); }
+  .callout.warn .tag{ color:var(--warn); }
+  .callout.danger{ border-left-color:var(--danger); background:var(--danger-soft); }
+  .callout.danger .tag{ color:var(--danger); }
+
+  /* ---------------------------------------------------------------- code */
+  .codeblock{
+    background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 18px; overflow-x:auto; margin:14px 0 20px; max-width:74ch; break-inside:avoid;
+  }
+  .codeblock pre{ margin:0; font-family:var(--mono); font-size:13.5px; line-height:1.65; color:var(--text); white-space:pre; }
+  .codeblock .c{ color:var(--text-faint); }
+  .codeblock .k{ color:var(--accent-strong); }
+  .inline-code{ font-family:var(--mono); font-size:.89em; background:var(--surface-2); padding:.12em .4em; border-radius:3px; border:1px solid var(--border); }
+
+  /* -------------------------------------------------------------- tables */
+  .tablewrap{ overflow-x:auto; margin:14px 0 22px; border:1px solid var(--border); border-radius:var(--radius); break-inside:avoid; }
+  table{ border-collapse:collapse; width:100%; min-width:480px; font-size:14.5px; }
+  th, td{ padding:9px 14px; text-align:left; border-bottom:1px solid var(--border); vertical-align:top; }
+  thead th{ font-family:var(--display); font-weight:600; font-size:12.5px; letter-spacing:.04em;
+    text-transform:uppercase; color:var(--text-dim); background:var(--surface-2); white-space:nowrap; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:nth-child(even){ background:color-mix(in srgb, var(--surface-2) 40%, transparent); }
+  td.num, th.num{ font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right; }
+  td code{ font-size:13px; }
+
+  /* --------------------------------------------------------------- dlist */
+  .keymap{ display:grid; grid-template-columns: minmax(140px,220px) 1fr; gap:2px 18px; margin:14px 0 22px; max-width:76ch; }
+  .keymap dt{ font-family:var(--mono); font-size:13.5px; color:var(--accent-strong); padding:7px 0; border-top:1px solid var(--border); }
+  .keymap dd{ margin:0; padding:7px 0; border-top:1px solid var(--border); font-size:14.5px; color:var(--text-dim); }
+  .keymap dt:first-of-type, .keymap dd:first-of-type{ border-top:none; }
+
+  /* ------------------------------------------------------------- tree/fs */
+  .tree{ background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px 20px; overflow-x:auto; margin:14px 0 22px; max-width:78ch; break-inside:avoid; }
+  .tree pre{ margin:0; font-family:var(--mono); font-size:13px; line-height:1.72; }
+  .tree .dir{ color:var(--accent-strong); font-weight:600; }
+  .tree .cm{ color:var(--text-faint); }
+
+  /* ------------------------------------------------------------- glossary */
+  .glossary{ display:flex; flex-direction:column; gap:0; margin:14px 0 22px; border-top:1px solid var(--border); max-width:76ch; }
+  .gterm{ display:grid; grid-template-columns: 172px 1fr; gap:18px; padding:13px 0; border-bottom:1px solid var(--border); break-inside:avoid; }
+  .gterm dt{ font-family:var(--display); font-weight:600; font-size:15px; color:var(--text); }
+  .gterm dd{ margin:0; font-size:14.5px; color:var(--text-dim); }
+  .gterm dd .inline-code{ font-size:.85em; }
+
+  /* --------------------------------------------------------------- stats */
+  .statrow{ display:flex; gap:0; flex-wrap:wrap; margin:14px 0 22px; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; break-inside:avoid; }
+  .statrow .cell{ flex:1 1 130px; padding:12px 16px; background:var(--surface); border-right:1px solid var(--border); border-top:1px solid var(--border); }
+  .statrow .cell:nth-child(-n+99){ border-top:none; }
+  .statrow .cell .v{ font-family:var(--mono); font-weight:600; font-size:19px; color:var(--text); font-variant-numeric:tabular-nums; }
+  .statrow .cell .k{ font-size:11.5px; color:var(--text-dim); margin-top:2px; }
+
+  /* -------------------------------------------------------------- diagram */
+  .diagram{ margin:18px 0 26px; break-inside:avoid; }
+  .diagram svg{ width:100%; height:auto; display:block; }
+  .diagram-caption{ font-size:13px; color:var(--text-faint); margin-top:8px; max-width:60ch; }
+
+  /* -------------------------------------------------------------- footer */
+  footer{ padding:34px 48px 60px; }
+  footer p{ font-size:13.5px; color:var(--text-faint); max-width:68ch; }
+
+  /* ------------------------------------------------------------ responsive */
+  @media (max-width: 880px){
+    .layout{ grid-template-columns: 1fr; }
+    .toc{ position:sticky; top:0; z-index:5; height:auto; width:100%; border-right:none; border-bottom:1px solid var(--border);
+      padding:12px 16px; background:var(--bg); }
+    .toc-title{ display:none; }
+    .toc ol{ flex-direction:row; overflow-x:auto; gap:4px; padding-bottom:2px; }
+    .toc a{ white-space:nowrap; padding:6px 10px; }
+    .masthead{ padding:28px 22px 24px; }
+    .masthead h1{ font-size:34px; }
+    .chapter{ padding:32px 22px; }
+    footer{ padding:24px 22px 48px; }
+  }
+
+  /* ----------------------------------------------------------------- print */
+  @media print{
+    :root{ --bg:#ffffff; --surface:#ffffff; --surface-2:#f2f2ee; }
+    *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    @page{ margin:16mm 14mm; }
+    body{ font-size:12.5px; }
+    .layout{ grid-template-columns:1fr; max-width:none; }
+    .toc{ position:static; height:auto; border-right:none; border-bottom:1px solid var(--border); padding:0 0 16px; }
+    .toc ol{ flex-direction:column; }
+    .toc a{ color:var(--text); }
+    .toc a.active{ background:none; font-weight:400; }
+    .masthead, .chapter{ padding-left:4px; padding-right:4px; }
+    .chapter{ break-inside:auto; }
+    .chapter-head, h2, h3{ break-after:avoid; }
+    a{ color:var(--text); text-decoration:none; }
+    .codeblock, .tree{ white-space:pre-wrap; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="toc" id="toc">
+    <div class="toc-title">Contents</div>
+    <ol>
+      <li><a href="#overview"><span class="n">01</span><span>Overview</span></a></li>
+      <li><a href="#concepts"><span class="n">02</span><span>Core concepts</span></a></li>
+      <li><a href="#architecture"><span class="n">03</span><span>Architecture</span></a></li>
+      <li><a href="#pipeline"><span class="n">04</span><span>How data is generated</span></a></li>
+      <li><a href="#running"><span class="n">05</span><span>Running it</span></a></li>
+      <li><a href="#seeds"><span class="n">06</span><span>Seeds &amp; reproducibility</span></a></li>
+      <li><a href="#scenarios"><span class="n">07</span><span>Scenarios</span></a></li>
+      <li><a href="#demand"><span class="n">08</span><span>Demand &amp; booking</span></a></li>
+      <li><a href="#disruptions"><span class="n">09</span><span>Disruptions &amp; cascades</span></a></li>
+      <li><a href="#feedback"><span class="n">10</span><span>Feedback &amp; outcomes</span></a></li>
+      <li><a href="#config"><span class="n">11</span><span>Configuration</span></a></li>
+      <li><a href="#validation"><span class="n">12</span><span>Validation &amp; tests</span></a></li>
+      <li><a href="#limits"><span class="n">13</span><span>Limitations</span></a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <div class="masthead">
+      <div class="eyebrow">Reference manual · Rev. 2</div>
+      <h1>Simulator Field Manual</h1>
+      <p class="scope">A discrete-event simulation for studying dynamic workforce allocation under
+        changing demand, disruption and uncertainty — configured, for now, as a Chennai-division
+        subset of Southern Railway.</p>
+      <div class="caution">
+        <span class="tag">Not a digital twin</span>
+        <p>Station and train names are real; <strong>every operational number is invented</strong>.
+          No IRCTC or Indian Railways data is used at runtime, and none is required. This is a
+          plausible synthetic world for studying allocation mechanisms — read every figure below
+          as a property of the model, not a claim about the real railway.</p>
+      </div>
+      <div class="facts">
+        <div class="fact"><div class="v">1</div><div class="k">simulation engine</div></div>
+        <div class="fact"><div class="v">4</div><div class="k">departments</div></div>
+        <div class="fact"><div class="v">12</div><div class="k">stations</div></div>
+        <div class="fact"><div class="v">338</div><div class="k">on-roster workers</div></div>
+        <div class="fact"><div class="v">8</div><div class="k">scenarios</div></div>
+        <div class="fact"><div class="v">45</div><div class="k">passing tests</div></div>
+      </div>
+    </div>
+
+    <!-- ============================================================ 01 -->
+    <section class="chapter" id="overview">
+      <div class="chapter-head"><span class="chapter-num">01</span><h2>Overview</h2></div>
+      <p class="lede">Work exists in this simulator because something happened — a train ran late,
+        a platform got crowded, a signal failed. Nothing is drawn from a fixed task list.</p>
+
+      <div class="prose">
+        <p>The engine is a <strong>SimPy discrete-event simulation</strong>. Passenger demand is
+          generated from a latent process and allocated under capacity constraints; that
+          allocation determines station workload; workload becomes tasks; tasks compete for a
+          heterogeneous, constrained workforce; disruptions inject further tasks through the same
+          machinery as routine work, so a delay can cascade into cleaning and ticketing backlogs
+          exactly as it would in practice. One <code class="inline-code">SimulationEngine</code>
+          instance is the whole world for one episode.</p>
+      </div>
+
+      <h3>The causal chain</h3>
+      <div class="diagram" aria-label="Causal chain from latent demand to feedback">
+        <svg viewBox="0 0 760 520" role="img">
+          <defs>
+            <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L8,4 L0,8 z" fill="var(--text-faint)"></path>
+            </marker>
+          </defs>
+          <style>
+            .nbox{ fill:var(--surface); stroke:var(--border-strong); stroke-width:1; }
+            .nbox.hi{ stroke:var(--accent); }
+            .nlabel{ font-family:var(--display); font-weight:600; font-size:14px; fill:var(--text); }
+            .nsub{ font-family:var(--mono); font-size:10.5px; fill:var(--text-faint); }
+            .flow{ stroke:var(--text-faint); stroke-width:1.4; fill:none; marker-end:url(#arrow); }
+          </style>
+
+          <rect class="nbox" x="230" y="10" width="300" height="46" rx="4"></rect>
+          <text class="nlabel" x="380" y="30" text-anchor="middle">Latent demand intensity</text>
+          <text class="nsub" x="380" y="46" text-anchor="middle">trend · weekday · hourly · festival · regime · AR(1)</text>
+          <path class="flow" d="M380,56 L380,84"></path>
+
+          <rect class="nbox" x="230" y="86" width="300" height="46" rx="4"></rect>
+          <text class="nlabel" x="380" y="106" text-anchor="middle">Negative-binomial demand</text>
+          <text class="nsub" x="380" y="122" text-anchor="middle">overdispersed count per train · class · day</text>
+          <path class="flow" d="M380,132 L380,160"></path>
+
+          <rect class="nbox hi" x="205" y="162" width="350" height="50" rx="4"></rect>
+          <text class="nlabel" x="380" y="184" text-anchor="middle">Capacity-constrained booking</text>
+          <text class="nsub" x="380" y="200" text-anchor="middle">FCFS allocation -&gt; confirmed / RAC / waitlist</text>
+          <path class="flow" d="M380,212 L380,240"></path>
+
+          <rect class="nbox" x="190" y="242" width="380" height="46" rx="4"></rect>
+          <text class="nlabel" x="380" y="262" text-anchor="middle">Station pressure &amp; footfall</text>
+          <text class="nsub" x="380" y="278" text-anchor="middle">unreserved demand · platform tickets · WL pressure</text>
+          <path class="flow" d="M380,288 L380,316"></path>
+
+          <rect class="nbox" x="230" y="318" width="300" height="46" rx="4"></rect>
+          <text class="nlabel" x="380" y="338" text-anchor="middle">Tasks (process graphs)</text>
+          <text class="nsub" x="380" y="354" text-anchor="middle">turnaround · ticketing · crowd response · maintenance</text>
+
+          <rect class="nbox" x="600" y="242" width="150" height="46" rx="4"></rect>
+          <text class="nlabel" x="675" y="262" text-anchor="middle" style="font-size:13px">Disruptions</text>
+          <text class="nsub" x="675" y="278" text-anchor="middle">Hawkes cascades</text>
+          <path class="flow" d="M675,288 C675,330 560,330 532,338"></path>
+
+          <path class="flow" d="M380,364 L380,392"></path>
+          <rect class="nbox" x="230" y="394" width="300" height="46" rx="4"></rect>
+          <text class="nlabel" x="380" y="414" text-anchor="middle">Queue -&gt; assignment -&gt; execution</text>
+          <text class="nsub" x="380" y="430" text-anchor="middle">eligible, non-interchangeable workers only</text>
+          <path class="flow" d="M380,440 L380,468"></path>
+
+          <rect class="nbox" x="205" y="470" width="350" height="46" rx="4"></rect>
+          <text class="nlabel" x="380" y="490" text-anchor="middle">Outcomes: KPIs, cost, event log</text>
+          <text class="nsub" x="380" y="506" text-anchor="middle">-&gt; latent experience -&gt; sparse, delayed CSAT / NPS</text>
+        </svg>
+      </div>
+      <p class="diagram-caption">Every stage feeds the next causally. Demand is never summed from
+        confirmed + RAC + WL + unreserved + platform tickets — those are outputs of one
+        capacity-constrained process, not independent draws.</p>
+
+      <div class="callout note">
+        <span class="tag">Mental model</span>
+        <p>Formally: task execution is a semi-Markov decision process. The clock advances freely
+          between <em>decision epochs</em> — a task becomes assignable, a worker frees, a shift
+          boundary arrives — and something (currently a rule-based policy, see §5) must act only
+          at those epochs.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ 02 -->
+    <section class="chapter" id="concepts">
+      <div class="chapter-head"><span class="chapter-num">02</span><h2>Core concepts</h2></div>
+      <p class="lede">The engine is domain-agnostic: none of these types mention railways.
+        Southern Railway is a configuration layered on top — see §11.</p>
+
+      <div class="glossary">
+        <div class="gterm"><dt>Worker</dt><dd>A heterogeneous resource: <code class="inline-code">skills</code> (proficiency per skill, 0–1), <code class="inline-code">qualifications</code>, <code class="inline-code">fatigue</code>, <code class="inline-code">hourly_cost</code>, <code class="inline-code">absence_propensity</code>. Two workers in the same role are not interchangeable.</dd></div>
+        <div class="gterm"><dt>Task</dt><dd>One activity instance: a required skill and minimum proficiency, required qualifications, a priority, a deadline, and a lognormal duration. Belongs to a <code class="inline-code">case_id</code>.</dd></div>
+        <div class="gterm"><dt>Process</dt><dd>A directed graph of activities (<code class="inline-code">simulation/processes/templates.py</code>). Completing an activity spawns its successors; some activities can loop back on rework instead of closing.</dd></div>
+        <div class="gterm"><dt>Decision epoch</dt><dd>A point where the driving policy must act. Two kinds: <code class="inline-code">DISPATCH</code> (a task is assignable) and <code class="inline-code">STAFFING</code> (a shift boundary — hold, activate a reserve, authorise or release overtime).</dd></div>
+        <div class="gterm"><dt>Eligibility</dt><dd>Hard feasibility: on shift, not absent, qualifications ⊆ worker's, proficiency ≥ minimum, travel distance ≤ limit. Enforced as an <em>action mask</em>, never as a reward penalty.</dd></div>
+        <div class="gterm"><dt>Disruption</dt><dd>A self-exciting point-process event (asset failure, train delay, demand spike) that spawns real tasks through the same process graphs as routine work — see §9.</dd></div>
+        <div class="gterm"><dt>True state / observation</dt><dd>Latent quantities (<code class="inline-code">simulation/state/true_state.py</code>) the engine tracks but never exposes, versus the noisy, delayed, sampled instruments the policy actually reads — see §10.</dd></div>
+      </div>
+
+      <h3>Decision surface</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Component</th><th>Size</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td>Action space</td><td class="num">27</td><td>10 ranked dispatch slots + defer, plus 4 departments × 4 staffing actions (hold / activate reserve / authorise overtime / release overtime)</td></tr>
+            <tr><td>Observation vector</td><td class="num">100</td><td>epoch(2) + time(4) + global(5) + per-department(5×4) + per-candidate(6×10) + task(4) + observed feedback(5)</td></tr>
+            <tr><td>RNG streams</td><td class="num">14</td><td>Named, independent per subsystem — see §4 and §6</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============================================================ 03 -->
+    <section class="chapter" id="architecture">
+      <div class="chapter-head"><span class="chapter-num">03</span><h2>Architecture</h2></div>
+      <p class="lede">One engine, one control interface, and a domain that is entirely
+        configuration.</p>
+
+      <div class="tree">
+<pre><span class="dir">config/domain/</span>       southern_railway.yaml <span class="cm"># the swappable domain skin</span>
+<span class="dir">config/scenarios/</span>    8 scenarios, expressed as deltas from normal_weekday
+<span class="dir">simulation/</span>
+  <span class="dir">core/</span>              rng.py · config.py · engine.py <span class="cm"># the SimPy world</span>
+  <span class="dir">entities/</span>          core.py <span class="cm"># generic Worker / Task / Process / Location / Shift / Asset</span>
+  <span class="dir">distributions/</span>     library.py <span class="cm"># NB, lognormal, beta-binomial, heavy tail, AR(1), Hawkes</span>
+  <span class="dir">demand/</span>            model.py <span class="cm"># latent intensity, booking allocation, footfall</span>
+  <span class="dir">workforce/</span>         population.py · schedule.py
+  <span class="dir">processes/</span>         templates.py <span class="cm"># 5 process graphs</span>
+  <span class="dir">disruptions/</span>       generators.py <span class="cm"># Hawkes cascades</span>
+  <span class="dir">feedback/</span>          experience.py · surveys.py · performance.py
+  <span class="dir">metrics/</span>           event_log.py · costs.py
+  <span class="dir">state/</span>             true_state.py <span class="cm"># latent state, kept apart from observation</span>
+<span class="dir">rl/</span>                 environment/env_a.py · policies/baselines.py
+<span class="dir">experiments/runners/</span>  run_sim.py · run_baselines.py
+<span class="dir">analysis/validation/</span>  validate.py · diagnose.py
+<span class="dir">viz/</span>                zero-dependency interactive run viewer
+<span class="dir">tests/</span>              45 tests across 3 files</pre>
+      </div>
+
+      <div class="callout warn">
+        <span class="tag">On the rl/ directory</span>
+        <p>The Gymnasium wrapper and the three rule-based drivers
+          (<code class="inline-code">random</code>, <code class="inline-code">greedy</code>,
+          <code class="inline-code">wfm_heuristic</code>) exist because the simulation needs
+          <em>something</em> to make dispatch and staffing decisions in order to run at all.
+          <strong>No learning is implemented and none is intended at this stage</strong> — priority
+          is getting the simulated world right first.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ 04 -->
+    <section class="chapter" id="pipeline">
+      <div class="chapter-head"><span class="chapter-num">04</span><h2>How data is generated</h2></div>
+      <p class="lede">There is no separate batch dataset builder. Every run generates its data
+        live, in this order, and you export whichever view of it you need afterwards.</p>
+
+      <h3>The generation order</h3>
+      <div class="keymap">
+        <dt>1 · Config</dt><dd>Domain + scenario YAML load into typed objects (<code class="inline-code">DomainConfig</code>, <code class="inline-code">ScenarioConfig</code>).</dd>
+        <dt>2 · RNG streams</dt><dd><code class="inline-code">RNGRegistry(seed)</code> derives 14 independent named streams (<code class="inline-code">demand_latent</code>, <code class="inline-code">workforce_absence</code>, <code class="inline-code">disruption_severity</code>, …) so a draw in one subsystem never shifts another's.</dd>
+        <dt>3 · Population</dt><dd><code class="inline-code">build_workforce()</code> draws ~338 workers (role, per-worker skill noise, cross-training, cost, experience, absence propensity, demand-weighted shift); <code class="inline-code">build_reserve_pool()</code> clones a ~12% activatable reserve.</dd>
+        <dt>4 · Assets</dt><dd>Per-station, per-tier equipment (signals, track circuits, escalators, lighting, coach rakes) that can fail and need repair.</dd>
+        <dt>5 · Demand</dt><dd>Each simulated day, <code class="inline-code">DemandModel</code> computes an AR(1)-correlated latent intensity per train/class, draws negative-binomial gross demand, and allocates it into confirmed/RAC/waitlist by capacity (§8). Footfall is drawn hourly per station from a shared pressure factor.</dd>
+        <dt>6 · Tasks</dt><dd>Departures spawn <em>turnaround</em> cases; footfall spawns <em>ticketing</em> and, above a pressure threshold, <em>crowd_response</em> cases; a daily programme spawns <em>maintenance</em> inspections. Each case unfolds through its process graph.</dd>
+        <dt>7 · Disruptions</dt><dd>A Hawkes point process per station per disruption type is thinned each simulated hour; accepted draws spawn <em>emergency_repair</em> or <em>crowd_response</em> cases through the same process engine (§9).</dd>
+        <dt>8 · Execution</dt><dd>The driving policy claims workers at decision epochs; task duration is drawn lognormal, scaled by proficiency and fatigue.</dd>
+        <dt>9 · Feedback</dt><dd>Completed customer-facing tasks compute a latent experience value and sparsely, with delay, sample a CSAT/NPS response (§10). Performance is cut at shift boundaries.</dd>
+        <dt>10 · Logging</dt><dd>Every activity start/end and every narrative event (a delay, a failure, a staffing action) is appended to <code class="inline-code">EventLog</code> and <code class="inline-code">KPIAccumulator</code> as it happens.</dd>
+      </div>
+
+      <h3>Getting a dataset out of a run</h3>
+      <p class="prose">A "dataset" is what you export from <code class="inline-code">engine</code>
+        after a run. There is no separate CLI for this — run a scenario, then pull whichever view
+        you need:</p>
+      <div class="codeblock"><pre><span class="c"># run_sim.py's --trace flag does step 3 below for you automatically</span>
+<span class="k">from</span> rl.environment.env_a <span class="k">import</span> WorkforceEnvA
+<span class="k">from</span> rl.policies.baselines <span class="k">import</span> build_policy
+
+env = WorkforceEnvA(scenario=<span class="c">"normal_weekday"</span>, seed=<span class="c">0</span>)
+policy = build_policy(<span class="c">"wfm_heuristic"</span>)
+obs, _ = env.reset(seed=<span class="c">0</span>)
+<span class="k">while</span> <span class="k">True</span>:
+    obs, r, term, trunc, info = env.step(policy.act(obs, env.action_masks(), env))
+    <span class="k">if</span> term <span class="k">or</span> trunc: <span class="k">break</span>
+
+<span class="c"># 1. PM4Py-compatible event log</span>
+env.engine.log.to_dataframe().to_csv(<span class="c">"event_log.csv"</span>, index=<span class="k">False</span>)
+env.engine.log.to_xes_dataframe().to_csv(<span class="c">"event_log_xes.csv"</span>, index=<span class="k">False</span>)
+
+<span class="c"># 2. KPIs, costs, observed feedback, latent ground truth (validation only)</span>
+env.engine.kpis.summary()
+env.engine.outcome_summary()
+
+<span class="c"># 3. Planned roster / schedule entries</span>
+env.engine.roster.to_records()</pre></div>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Export</th><th>Source</th><th>Columns / shape</th></tr></thead>
+          <tbody>
+            <tr><td>Event log</td><td><code>engine.log.to_dataframe()</code></td><td>case_id, activity, timestamp, lifecycle, resource_id, role_id, team_id, queue_time, processing_time, status, outcome</td></tr>
+            <tr><td>XES-named log</td><td><code>engine.log.to_xes_dataframe()</code></td><td>same, renamed to <code>case:concept:name</code> / <code>concept:name</code> / <code>time:timestamp</code> / <code>org:resource</code> / <code>org:role</code> — imports into PM4Py directly</td></tr>
+            <tr><td>KPI summary</td><td><code>engine.kpis.summary()</code></td><td>dict: completion/breach rate, queue time, utilisation, labour/overtime cost, disruptions, waitlist, abandon reasons</td></tr>
+            <tr><td>Outcome bundle</td><td><code>engine.outcome_summary()</code></td><td>dict: cost decomposition, observed vs. true feedback, performance, latent-state summary</td></tr>
+            <tr><td>Visualiser trace</td><td><code>run_sim.py --trace out/run.json</code></td><td>JSON: meta, KPIs, timestamped snapshots, narrative events, decision log</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout ok">
+        <span class="tag">Reproducibility</span>
+        <p>Same scenario + same seed ⇒ byte-identical world, every time — verified by
+          <code class="inline-code">tests/test_core.py::test_same_seed_same_world</code> and
+          <code class="inline-code">tests/test_environments.py::test_same_seed_reproduces_episode</code>.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ 05 -->
+    <section class="chapter" id="running">
+      <div class="chapter-head"><span class="chapter-num">05</span><h2>Running it</h2></div>
+      <p class="lede">Every command below runs from the project root, with the virtual
+        environment already built.</p>
+
+      <h3>Setup</h3>
+      <div class="codeblock"><pre>python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt</pre></div>
+
+      <h3>Run one simulated day and watch it</h3>
+      <div class="codeblock"><pre>.venv/bin/python -m experiments.runners.run_sim \
+    --scenario normal_weekday --policy wfm_heuristic --seed 0 --trace out/run.json</pre></div>
+      <p class="prose">Prints an interleaved event timeline (cascades marked) and the KPI summary.
+        Open <code class="inline-code">viz/index.html</code>, click <strong>Load trace</strong>,
+        pick <code class="inline-code">out/run.json</code>: a play/scrub clock, live station
+        queues, department load, the event feed, the decision log, and the CSAT/NPS/cost panel.</p>
+
+      <h3>Compare policies across scenarios</h3>
+      <div class="codeblock"><pre>.venv/bin/python -m experiments.runners.run_baselines \
+    --scenarios normal_weekday,high_demand,combined_stress \
+    --policies random,greedy,wfm_heuristic --seeds 5</pre></div>
+
+      <h3>Check the world is behaving</h3>
+      <div class="codeblock"><pre>.venv/bin/python -m analysis.validation.validate --scenario normal_weekday --seed 0
+.venv/bin/python -m analysis.validation.diagnose  --scenario normal_weekday --policy greedy</pre></div>
+      <p class="prose"><code class="inline-code">validate</code> separates <strong>invariants</strong>
+        (a failure is a bug) from <strong>plausibility</strong> (a failure is miscalibration).
+        <code class="inline-code">diagnose</code> explains why a run looks the way it does.</p>
+
+      <h3>Tests</h3>
+      <div class="codeblock"><pre>PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 .venv/bin/python -m pytest -q</pre></div>
+    </section>
+
+    <!-- ============================================================ 06 -->
+    <section class="chapter" id="seeds">
+      <div class="chapter-head"><span class="chapter-num">06</span><h2>Seeds &amp; reproducibility</h2></div>
+      <p class="lede">Everything that looks random — demand, workers, absences, failures, task
+        durations — is really one deterministic sequence of numbers, unrolled from a single
+        starting integer. Same seed, same world, every time.</p>
+
+      <div class="prose">
+        <p>A seed is the starting state for a pseudo-random number generator. Nothing here is
+          "truly" random; <code class="inline-code">--seed 0</code> and <code class="inline-code">--seed 1</code>
+          each unroll into their own long, fixed sequence of draws, and the simulator just consumes
+          numbers from that sequence as it goes. Same seed, same scenario, same policy ⇒ the exact
+          same sequence of decisions is offered and the exact same world plays out — byte-identical
+          output, not just "similar."</p>
+        <p>One seed does not feed a single global generator. <code class="inline-code">RNGRegistry</code>
+          (<code class="inline-code">simulation/core/rng.py</code>) derives <strong>14 independent
+          named streams</strong> from it, one per subsystem, by hashing
+          <code class="inline-code">"&lt;seed&gt;:&lt;stream_name&gt;"</code> with SHA-256:</p>
+      </div>
+
+      <div class="tree">
+<pre>demand_latent · demand_booking · demand_unreserved
+workforce_population · workforce_absence · workforce_fatigue
+process_duration · process_rework
+disruption_base · disruption_hawkes · disruption_severity
+observation_noise · regime · policy</pre>
+      </div>
+
+      <div class="callout note">
+        <span class="tag">Why it's split into 14 streams</span>
+        <p>Adding one extra random draw to the workforce generator does not shift a single demand
+          number, because they live in different streams entirely. This is what makes paired-seed
+          comparison valid: on the same seed, two different policies face <em>identical</em> demand,
+          absences and disruptions, so any KPI difference is attributable to the decisions, not to
+          an accidental change in the world underneath them.</p>
+      </div>
+
+      <h3>How to use it</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Goal</th><th>What to change</th></tr></thead>
+          <tbody>
+            <tr><td>Reproduce a run exactly</td><td>Don't change anything — <code class="inline-code">--seed</code> defaults to <code>0</code>, so re-running the identical command reproduces the identical <code class="inline-code">out/run.json</code></td></tr>
+            <tr><td>Get a different world</td><td>Pass a different integer: <code class="inline-code">--seed 1</code>, <code class="inline-code">--seed 42</code>, anything — no value is "special"</td></tr>
+            <tr><td>Compare two policies fairly</td><td>Hold <code class="inline-code">--seed</code> fixed, vary <code class="inline-code">--policy</code>, then load both traces into the visualiser's <strong>Compare</strong> panel</td></tr>
+            <tr><td>Get a statistically defensible answer</td><td>Sweep seeds with <code class="inline-code">run_baselines.py --seeds N</code> (runs <code class="inline-code">0..N-1</code>) and read the mean ± 95% CI, not a single run</td></tr>
+            <tr><td>Change a scenario's default seed</td><td>Edit <code class="inline-code">scenario.seed</code> in that scenario's YAML — only takes effect when <code class="inline-code">--seed</code> is omitted on the command line</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="codeblock"><pre><span class="c"># same command, same seed (0, the default) -> identical file</span>
+run_sim.py --scenario normal_weekday --policy wfm_heuristic --trace out/a.json
+run_sim.py --scenario normal_weekday --policy wfm_heuristic --trace out/b.json
+diff out/a.json out/b.json          <span class="c"># -> no output: identical</span>
+
+<span class="c"># same command, different seed -> a different but equally valid world</span>
+run_sim.py --scenario normal_weekday --policy wfm_heuristic --seed 1 --trace out/c.json
+diff out/a.json out/c.json          <span class="c"># -> differs, as expected</span>
+
+<span class="c"># fair A/B: hold the seed, vary the policy</span>
+run_sim.py --scenario normal_weekday --seed 7 --policy greedy        --trace out/greedy.json
+run_sim.py --scenario normal_weekday --seed 7 --policy wfm_heuristic --trace out/heuristic.json
+
+<span class="c"># statistical confidence: 5 seeds (0-4), mean +/- 95% CI per metric</span>
+run_baselines.py --scenarios normal_weekday --policies greedy --seeds 5</pre></div>
+
+      <div class="callout warn">
+        <span class="tag">What seed does <em>not</em> control</span>
+        <p>Scenario difficulty — the demand multiplier, absence rate, disruption rates — lives in
+          the scenario YAML (§7), not in the seed. The seed only picks <em>which</em> random draw
+          you get of whatever difficulty that YAML specifies; it cannot make
+          <code class="inline-code">normal_weekday</code> behave like
+          <code class="inline-code">combined_stress</code>.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ 07 -->
+    <section class="chapter" id="scenarios">
+      <div class="chapter-head"><span class="chapter-num">07</span><h2>Scenarios</h2></div>
+      <p class="lede">All eight live in <code class="inline-code">config/scenarios/</code>, expressed
+        as deltas from <code class="inline-code">normal_weekday.yaml</code>.</p>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Scenario</th><th>What changes</th></tr></thead>
+          <tbody>
+            <tr><td><code>normal_weekday</code></td><td>Reference world</td></tr>
+            <tr><td><code>weekend</code></td><td>Leisure-shifted demand, higher unreserved share</td></tr>
+            <tr><td><code>high_demand</code></td><td>Demand well above establishment planning</td></tr>
+            <tr><td><code>festival</code></td><td>Extreme peak, heavier tails, more unreserved crowding</td></tr>
+            <tr><td><code>high_absence</code></td><td>Normal demand, badly depleted roster</td></tr>
+            <tr><td><code>equipment_disruption</code></td><td>Elevated failure rate, strong cascade excitation</td></tr>
+            <tr><td><code>high_demand_absence</code></td><td>Squeezed from both sides</td></tr>
+            <tr><td><code>combined_stress</code></td><td>High demand + cascading failures + absence + regime switching</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>The stress ladder (greedy policy, 3–5 seeds)</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Scenario</th><th class="num">SLA breach</th><th class="num">Mean queue (min)</th><th class="num">Utilisation</th></tr></thead>
+          <tbody>
+            <tr><td><code>normal_weekday</code></td><td class="num">0.15</td><td class="num">36</td><td class="num">0.24</td></tr>
+            <tr><td><code>high_absence</code></td><td class="num">0.19</td><td class="num">44</td><td class="num">0.28</td></tr>
+            <tr><td><code>high_demand</code></td><td class="num">0.29</td><td class="num">59</td><td class="num">0.31</td></tr>
+            <tr><td><code>combined_stress</code></td><td class="num">0.36</td><td class="num">81</td><td class="num">0.38</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="prose">Service degrades monotonically with stress — the basic sanity property a
+        scenario ladder needs to be worth anything.</p>
+    </section>
+
+    <!-- ============================================================ 08 -->
+    <section class="chapter" id="demand">
+      <div class="chapter-head"><span class="chapter-num">08</span><h2>Demand &amp; booking</h2></div>
+      <p class="lede">Waitlist is emergent from capacity, never an independent draw.</p>
+
+      <div class="prose">
+        <p>One demand pool exists per (train, class, day). Bookings are allocated
+          <strong>first-come, first-served</strong>: positions 1…C become confirmed, the next
+          <em>rac_fraction</em> × C become RAC, everyone past that is waitlisted. An aggregate
+          cancellation rate then frees berths, promoting RAC → confirmed and waitlist → RAC in
+          order. Demand is <strong>never</strong> the sum of confirmed + RAC + WL + unreserved +
+          platform tickets — those are outputs of one process, not independent variables.</p>
+        <p>Unreserved demand, platform tickets and general footfall all load on a shared
+          "station pressure" AR(1) factor with their own base rates and idiosyncratic noise, so
+          they are correlated but not redundant.</p>
+      </div>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Parameter</th><th class="num">Value</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>rac_fraction</code></td><td class="num">0.08</td><td>RAC buffer as a share of berth capacity</td></tr>
+            <tr><td><code>cancellation_rate</code></td><td class="num">0.14</td><td>Aggregate pre-departure cancellation rate</td></tr>
+            <tr><td><code>booking_window_days</code></td><td class="num">30</td><td>Lead time the booking curve spans</td></tr>
+            <tr><td><code>dispersion_k</code></td><td class="num">8.0</td><td>Negative-binomial dispersion (lower = more overdispersed)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout ok">
+        <span class="tag">Validated</span>
+        <p>On the reference scenario: demand variance/mean ratio 6.07 (overdispersed as intended);
+          9 of 40 train-class combinations produce a waitlist under normal load, rising sharply
+          under <code class="inline-code">combined_stress</code> (869 → 3,681 waitlisted
+          passengers/day).</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ 09 -->
+    <section class="chapter" id="disruptions">
+      <div class="chapter-head"><span class="chapter-num">09</span><h2>Disruptions &amp; cascades</h2></div>
+      <p class="lede">A failure raises the short-term rate of further trouble. There is no
+        separate "disruption handler" — disruptions spawn ordinary tasks.</p>
+
+      <div class="prose">
+        <p>Each (station, disruption type) pair runs a Hawkes point process:
+          <code class="inline-code">λ(t) = μ + Σ weight·branching_ratio·β·exp(−β·(t−tᵢ))</code>.
+          It is parameterised by <strong>branching ratio</strong> — the expected number of direct
+          offspring per event — validated <code class="inline-code">&lt; 1</code> at construction,
+          because a process at or above that threshold is non-stationary and explodes.
+          Neighbouring stations receive damped, <em>weighted</em> excitation, so network spread
+          cannot push the aggregate ratio over the stability threshold either.</p>
+        <p>An accepted draw spawns an <code class="inline-code">emergency_repair</code> or
+          <code class="inline-code">crowd_response</code> case through the same process engine as
+          routine work, so <code class="inline-code">delay → crowding → extra commercial and
+          cleaning work → knock-on delay</code> emerges from the mechanics.</p>
+      </div>
+
+      <div class="callout danger">
+        <span class="tag">Failure mode, corrected</span>
+        <p>An early build parameterised excitation directly by <code class="inline-code">alpha</code>
+          with unbounded neighbour history — the process was supercritical and produced 2,770
+          disruptions in one simulated day. Reparameterising on branching ratio (with a hard
+          validation check) fixed it: the reference scenario now produces 19 disruptions/day,
+          3 of them cascades.</p>
+      </div>
+
+      <div class="statrow">
+        <div class="cell"><div class="v">0.25</div><div class="k">branching ratio · normal_weekday</div></div>
+        <div class="cell"><div class="v">0.45</div><div class="k">branching ratio · combined_stress</div></div>
+        <div class="cell"><div class="v">121</div><div class="k">disruptions/day · combined_stress</div></div>
+        <div class="cell"><div class="v">70%</div><div class="k">of those are cascades</div></div>
+      </div>
+    </section>
+
+    <!-- ============================================================ 10 -->
+    <section class="chapter" id="feedback">
+      <div class="chapter-head"><span class="chapter-num">10</span><h2>Feedback &amp; outcomes</h2></div>
+      <p class="lede">NPS, CSAT, employee performance, costs and schedules are sparse or
+        unavailable in public railway data, so the simulator generates them as synthetic
+        instruments — never presented as IRCTC- or Indian-Railways-sourced.</p>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Signal</th><th>Treated as</th><th>Key property</th></tr></thead>
+          <tbody>
+            <tr><td>CSAT / NPS</td><td>Sparse, delayed customer feedback</td><td>~6% base response rate, hours of delivery delay, dissatisfied customers respond more</td></tr>
+            <tr><td>Operational cost</td><td>Outcome / KPI</td><td>Decomposed: labour, overtime, reserve activation, SLA penalty, disruption response, idle capacity, rework</td></tr>
+            <tr><td>Employee performance</td><td>Outcome / KPI</td><td>Difficulty-adjusted, cut at shift boundaries — never a live per-task readout</td></tr>
+            <tr><td>Schedules</td><td>Workforce state</td><td>Drives availability, shift boundaries, overtime authorisation</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Latent state vs. observation</h3>
+      <p class="prose">The separation is structural, not a convention.
+        <code class="inline-code">FeedbackRegistry.observed()</code> filters on
+        <strong>delivery time</strong>, not interaction time — a response cannot be seen before it
+        arrives. Performance aggregates only <strong>closed</strong> review periods.</p>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th></th><th class="num">normal_weekday</th><th class="num">combined_stress</th></tr></thead>
+          <tbody>
+            <tr><td>Latent experience (hidden, population)</td><td class="num">0.666</td><td class="num">0.410</td></tr>
+            <tr><td>Responders' latent experience</td><td class="num">0.595</td><td class="num">—</td></tr>
+            <tr><td>Observed CSAT (what the policy sees)</td><td class="num">3.42 / 5</td><td class="num">2.28 / 5</td></tr>
+            <tr><td>Survey response rate</td><td class="num">10.1%</td><td class="num">12.8%</td></tr>
+            <tr><td>Total operational cost</td><td class="num">5,382</td><td class="num">16,668</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="prose">Responders skew dissatisfied relative to the population (0.595 vs. 0.666) —
+        the non-response bias is real and measured, not asserted.</p>
+
+      <div class="callout danger">
+        <span class="tag">Never use as a model input</span>
+        <p>The <code class="inline-code">latent_experience</code> value is computed for validation
+          only. It is never read by the observation builder — see
+          <code class="inline-code">tests/test_feedback.py::test_observation_contains_no_latent_experience</code>.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ 11 -->
+    <section class="chapter" id="config">
+      <div class="chapter-head"><span class="chapter-num">11</span><h2>Configuration</h2></div>
+      <p class="lede">Two files, two jobs: the domain is <em>what kind of world this is</em>; the
+        scenario is <em>what is happening in it, and how hard</em>.</p>
+
+      <h3><code class="inline-code">config/domain/southern_railway.yaml</code></h3>
+      <div class="keymap">
+        <dt>departments, skills, roles</dt><dd>4 departments, 11 skills, 12 roles with per-role proficiency and hourly cost</dd>
+        <dt>qualifications</dt><dd>3 hard-gated credentials (safety_cert, high_voltage, signal_authority)</dd>
+        <dt>role_mix, cross_training</dt><dd>Per-department role proportions and secondary-skill probability</dd>
+        <dt>locations, travel_minutes</dt><dd>12 stations by tier, pairwise travel time for dispatch cost</dd>
+        <dt>trains, classes, booking</dt><dd>10 services, 4 classes, the CNF/RAC/WL allocation parameters</dd>
+        <dt>workforce</dt><dd>Headcount per location tier per department, reserve fraction, absence/overtime parameters</dd>
+      </div>
+
+      <h3><code class="inline-code">config/scenarios/&lt;name&gt;.yaml</code></h3>
+      <div class="keymap">
+        <dt>scenario</dt><dd>id, domain, start_date, duration_days, seed</dd>
+        <dt>demand</dt><dd>multiplier, festival_mode, AR(1) params, dispersion_k, weekday/hourly profiles</dd>
+        <dt>workforce</dt><dd>multiplier, absence_rate_multiplier, reserve/overtime availability</dd>
+        <dt>disruptions</dt><dd>per-type base rates, hawkes_branching_ratio, severity distribution</dd>
+        <dt>drift</dt><dd>regime-switching: enabled, named regimes, transition probability</dd>
+        <dt>reward</dt><dd>w_wait, w_sla, w_cost, w_overtime, w_backlog, w_throughput, w_balance</dd>
+        <dt>feedback</dt><dd>experience weights, survey sparsity/delay, cost rates</dd>
+      </div>
+
+      <p class="prose">To model a different domain — a hospital, a factory — write a new domain
+        YAML and new process templates; the engine mentions no railway concepts, so nothing else
+        changes.</p>
+    </section>
+
+    <!-- ============================================================ 12 -->
+    <section class="chapter" id="validation">
+      <div class="chapter-head"><span class="chapter-num">12</span><h2>Validation &amp; tests</h2></div>
+      <p class="lede">Two tiers, deliberately kept apart.</p>
+
+      <div class="prose">
+        <ul>
+          <li><strong>Invariants</strong> — things that must never happen. A failure is a bug:
+            capacity exceeded, double-booked workers, a qualification violated, an undelivered
+            survey visible to the policy.</li>
+          <li><strong>Plausibility</strong> — statistical properties a realistic world should have.
+            A failure means miscalibration, not a bug: weekly seasonality, demand overdispersion,
+            duration skew, a sub-critical disruption process.</li>
+        </ul>
+      </div>
+
+      <div class="statrow">
+        <div class="cell"><div class="v">18</div><div class="k">invariant checks</div></div>
+        <div class="cell"><div class="v">4</div><div class="k">plausibility checks</div></div>
+        <div class="cell"><div class="v">22 / 22</div><div class="k">passing, both scenarios tested</div></div>
+        <div class="cell"><div class="v">45</div><div class="k">unit / contract tests</div></div>
+      </div>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>File</th><th class="num">Tests</th><th>Covers</th></tr></thead>
+          <tbody>
+            <tr><td><code>tests/test_core.py</code></td><td class="num">20</td><td>RNG independence, distributions, booking capacity/conservation, eligibility, scenario loading</td></tr>
+            <tr><td><code>tests/test_environments.py</code></td><td class="num">10</td><td>Gymnasium API shape, action masking, reproducibility, scenario stress ordering, cascade spawning</td></tr>
+            <tr><td><code>tests/test_feedback.py</code></td><td class="num">15</td><td>No feedback leakage, sparsity, delivery delay, non-response bias, cost decomposition, schedules</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============================================================ 13 -->
+    <section class="chapter" id="limits">
+      <div class="chapter-head"><span class="chapter-num">13</span><h2>Known limitations</h2></div>
+      <div class="prose">
+        <ul>
+          <li>Every rate, cost and probability not traceable to a public aggregate is invented.
+            This world is about <em>mechanism</em>, not Southern Railway's real numbers.</li>
+          <li>The booking model is deliberately lean: aggregate cancellation and promotion, no
+            per-passenger cancellation hazard, no chart preparation, no GNWL/TQWL sub-quotas.</li>
+          <li>Overall utilisation reads moderate while specific skills bottleneck — realistic
+            (specialists are scarce, generalists idle), but it means the aggregate number
+            understates local pressure.</li>
+          <li>Observability is near-complete apart from the feedback layer; the latent/observed
+            seam exists so a fuller POMDP variant can be added without restructuring the
+            generative model.</li>
+          <li>No learning is implemented. The Gymnasium wrapper and rule-based policies exist to
+            drive the simulation, not to demonstrate an RL result.</li>
+        </ul>
+      </div>
+    </section>
+
+    <footer>
+      <p>Southern Railway (Chennai division subset) is the initial domain configuration, not the
+        architecture — see §3 and §11. Source of record: this repository's
+        <code class="inline-code">README.md</code> and <code class="inline-code">RESEARCH_REPORT.md</code>.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+(function(){
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var sections = links.map(function(a){ return document.querySelector(a.getAttribute('href')); });
+  if (!('IntersectionObserver' in window)) return;
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      var idx = sections.indexOf(entry.target);
+      if (idx === -1) return;
+      if (entry.isIntersecting){
+        links.forEach(function(l){ l.classList.remove('active'); });
+        links[idx].classList.add('active');
+      }
+    });
+  }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+  sections.forEach(function(s){ if (s) io.observe(s); });
+})();
+</script>
+</body>
+</html>

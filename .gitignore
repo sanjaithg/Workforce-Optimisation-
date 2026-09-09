@@ -1,0 +1,14 @@
+# Virtual environment
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Generated run artifacts (reproducible from config + seed; not source)
+out/
+data/generated/
+
+# Editor / OS
+.DS_Store
