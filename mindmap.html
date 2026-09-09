@@ -1,0 +1,556 @@
+<title>Dispatch Board Schematic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#eceee3;
+    --surface:#fbfbf5;
+    --surface-2:#f2f3e9;
+    --ink:#1b2a1d;
+    --ink-soft:#52604f;
+    --ink-faint:#8b9284;
+    --line:#c3c9b5;
+    --line-strong:#9aa38c;
+    --accent:#c1701d;
+    --accent-soft:#e0a15a;
+    --rail:#2e5b4c;
+    --rail-soft:#4f7c6b;
+    --stub:#a49c8c;
+    --shadow: 2px 2px 0 rgba(27,42,29,0.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12181a;
+      --surface:#1a2320;
+      --surface-2:#202a26;
+      --ink:#e9edE2;
+      --ink-soft:#a9b6a2;
+      --ink-faint:#748072;
+      --line:#33403a;
+      --line-strong:#455349;
+      --accent:#e39a4a;
+      --accent-soft:#f0bd85;
+      --rail:#6fbf9b;
+      --rail-soft:#4f8f76;
+      --stub:#6d7669;
+      --shadow: 2px 2px 0 rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#12181a;
+    --surface:#1a2320;
+    --surface-2:#202a26;
+    --ink:#e9edE2;
+    --ink-soft:#a9b6a2;
+    --ink-faint:#748072;
+    --line:#33403a;
+    --line-strong:#455349;
+    --accent:#e39a4a;
+    --accent-soft:#f0bd85;
+    --rail:#6fbf9b;
+    --rail-soft:#4f8f76;
+    --stub:#6d7669;
+    --shadow: 2px 2px 0 rgba(0,0,0,0.35);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    margin:0;
+  }
+  .page{
+    max-width:1180px;
+    margin:0 auto;
+    padding:56px 32px 80px;
+    display:flex;
+    flex-direction:column;
+    gap:44px;
+  }
+
+  /* ---------- header / manifest ---------- */
+  header{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    border-bottom:2px solid var(--line-strong);
+    padding-bottom:28px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:600;
+  }
+  h1{
+    font-family:'Zilla Slab', serif;
+    font-weight:700;
+    font-size:clamp(34px, 5vw, 52px);
+    line-height:1.05;
+    margin:0;
+    text-wrap:balance;
+    color:var(--ink);
+  }
+  .dek{
+    font-size:16px;
+    line-height:1.55;
+    color:var(--ink-soft);
+    max-width:64ch;
+    margin:0;
+  }
+  .manifest{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px 0;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    font-variant-numeric:tabular-nums;
+  }
+  .manifest span:not(:last-child)::after{
+    content:"·";
+    color:var(--line-strong);
+    margin:0 12px;
+  }
+  .manifest strong{ color:var(--ink); font-weight:600; }
+
+  /* ---------- section shell ---------- */
+  section{ display:flex; flex-direction:column; gap:14px; }
+  .section-head{ display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  h2{
+    font-family:'Zilla Slab', serif;
+    font-weight:600;
+    font-size:22px;
+    margin:0;
+    color:var(--ink);
+  }
+  .section-note{
+    font-size:13.5px;
+    color:var(--ink-faint);
+    font-style:italic;
+  }
+
+  figure{ margin:0; display:flex; flex-direction:column; gap:10px; }
+  .diagram-frame{
+    background:var(--surface);
+    border:1.5px solid var(--line);
+    border-radius:3px;
+    padding:18px 14px;
+    overflow-x:auto;
+    box-shadow:var(--shadow);
+  }
+  svg{ display:block; width:100%; height:auto; min-width:920px; }
+  figcaption{
+    font-size:13px;
+    color:var(--ink-faint);
+    padding:0 4px;
+  }
+
+  /* svg text classes */
+  text{ font-family:'IBM Plex Sans', sans-serif; }
+  .t-eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; font-weight:600; letter-spacing:0.1em; fill:var(--accent); }
+  .t-title{ font-family:'Zilla Slab', serif; font-weight:600; font-size:16px; fill:var(--ink); }
+  .t-hub-title{ font-family:'Zilla Slab', serif; font-weight:700; font-size:20px; fill:var(--surface); }
+  .t-hub-sub{ font-family:'IBM Plex Mono', monospace; font-size:11px; fill:var(--surface); opacity:0.86; }
+  .t-path{ font-family:'IBM Plex Mono', monospace; font-size:12px; font-weight:600; fill:var(--ink); }
+  .t-desc{ font-family:'IBM Plex Sans', sans-serif; font-size:11px; fill:var(--ink-soft); }
+  .t-stub{ font-family:'IBM Plex Sans', sans-serif; font-size:10.5px; fill:var(--stub); font-style:italic; }
+  .t-label{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; fill:var(--rail); }
+  .t-concourse{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; font-weight:600; letter-spacing:0.12em; fill:var(--ink-faint); }
+  .t-stage{ font-family:'Zilla Slab', serif; font-weight:600; font-size:13.5px; fill:var(--ink); }
+  .t-formula{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; fill:var(--ink-soft); }
+
+  .rail-line{ stroke:var(--rail); stroke-width:2; fill:none; }
+  .rail-dot{ fill:var(--rail); }
+  .box-fill{ fill:var(--surface); }
+  .box-line{ stroke:var(--line-strong); stroke-width:1.4; }
+  .box-fill-alt{ fill:var(--surface-2); }
+  .hub-fill{ fill:var(--rail); }
+  .divider{ stroke:var(--line); stroke-width:1; }
+  .stub-box{ fill:none; stroke:var(--stub); stroke-width:1; stroke-dasharray:3 3; }
+  .flow-box{ fill:var(--surface); stroke:var(--line-strong); stroke-width:1.4; }
+  .flow-arrow{ stroke:var(--rail-soft); stroke-width:1.6; fill:none; }
+  .flow-num{ font-family:'IBM Plex Mono', monospace; font-size:10px; font-weight:600; fill:var(--accent); letter-spacing:0.08em; }
+
+  /* ---------- ticket note ---------- */
+  .ticket{
+    display:flex;
+    gap:16px;
+    align-items:flex-start;
+    background:var(--surface);
+    border:1.5px dashed var(--line-strong);
+    border-radius:3px;
+    padding:18px 22px;
+  }
+  .ticket .mark{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.1em;
+    color:var(--accent);
+    white-space:nowrap;
+    padding-top:2px;
+  }
+  .ticket p{
+    margin:0;
+    font-size:13.5px;
+    line-height:1.6;
+    color:var(--ink-soft);
+  }
+  .ticket p strong{ color:var(--ink); font-weight:600;}
+  .ticket code{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    background:var(--surface-2);
+    padding:1px 5px;
+    border-radius:2px;
+    color:var(--ink);
+  }
+
+  footer{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--ink-faint);
+    border-top:1px solid var(--line);
+    padding-top:16px;
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  @media (max-width: 640px){
+    .page{ padding:36px 18px 60px; }
+  }
+</style>
+
+<div class="page">
+
+  <header>
+    <span class="eyebrow">System schematic &middot; as built</span>
+    <h1>The dispatch board</h1>
+    <p class="dek">How the Workforce&#8209;Optimisation repository is actually wired together &mdash;
+      the generative world that manufactures work, the engine that hands out
+      decisions, and the tooling that watches the result. Traced module by
+      module from <code style="font-family:'IBM Plex Mono',monospace;background:var(--surface-2);padding:1px 5px;border-radius:2px;">simulation/core/engine.py</code> outward.</p>
+    <div class="manifest">
+      <span><strong>Python 3.12</strong></span>
+      <span><strong>SimPy</strong> discrete-event core</span>
+      <span><strong>Gymnasium</strong> control interface</span>
+      <span><strong>8</strong> scenarios</span>
+      <span><strong>~3,000</strong> LOC simulation core</span>
+      <span><strong>47/47</strong> tests passing</span>
+      <span>no CI configured</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="section-head">
+      <h2>01 &middot; The system, platform by platform</h2>
+      <span class="section-note">one engine, two concourses &mdash; the world it simulates, and the tools that drive &amp; watch it</span>
+    </div>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 1480 880" role="img" aria-label="Mind map of the repository, radiating from SimulationEngine in simulation/core/engine.py out to eight subsystems: Config, Generative World, Workforce, Decision Loop, Control Interface, State and Feedback, Metrics and Log, and Outer Loop and Tools.">
+          <defs>
+            <marker id="dot" markerWidth="6" markerHeight="6" refX="3" refY="3"><circle cx="3" cy="3" r="2.4" class="rail-dot"/></marker>
+          </defs>
+
+          <!-- HUB -->
+          <rect x="550" y="30" width="380" height="90" rx="3" class="hub-fill"/>
+          <text x="740" y="66" text-anchor="middle" class="t-hub-title">SimulationEngine</text>
+          <text x="740" y="86" text-anchor="middle" class="t-hub-sub">simulation/core/engine.py &mdash; decision-epoch DES driver</text>
+          <text x="740" y="103" text-anchor="middle" class="t-hub-sub" style="opacity:.7">owns the clock, the roster, the queue &mdash; blocks at every decision</text>
+
+          <!-- trunk -->
+          <line x1="740" y1="120" x2="740" y2="150" class="rail-line"/>
+          <circle cx="740" cy="150" r="3.2" class="rail-dot"/>
+
+          <!-- branch A -->
+          <line x1="740" y1="150" x2="740" y2="190" class="rail-line"/>
+          <line x1="45" y1="190" x2="1435" y2="190" class="rail-line"/>
+          <text x="740" y="222" text-anchor="middle" class="t-concourse">A &middot; THE SIMULATED WORLD</text>
+
+          <!-- branch B (through line on the right, bypassing concourse A) -->
+          <line x1="740" y1="150" x2="1460" y2="150" class="rail-line"/>
+          <line x1="1460" y1="150" x2="1460" y2="520" class="rail-line"/>
+          <line x1="1460" y1="520" x2="45" y2="520" class="rail-line"/>
+          <text x="740" y="552" text-anchor="middle" class="t-concourse">B &middot; DRIVING &amp; WATCHING IT</text>
+
+          <!-- drops row A + dots -->
+          <g class="rail-line">
+            <line x1="200" y1="190" x2="200" y2="250"/>
+            <line x1="560" y1="190" x2="560" y2="250"/>
+            <line x1="920" y1="190" x2="920" y2="250"/>
+            <line x1="1280" y1="190" x2="1280" y2="250"/>
+          </g>
+          <g class="rail-dot">
+            <circle cx="200" cy="190" r="3"/><circle cx="560" cy="190" r="3"/>
+            <circle cx="920" cy="190" r="3"/><circle cx="1280" cy="190" r="3"/>
+          </g>
+
+          <!-- drops row B + dots -->
+          <g class="rail-line">
+            <line x1="200" y1="520" x2="200" y2="580"/>
+            <line x1="560" y1="520" x2="560" y2="580"/>
+            <line x1="920" y1="520" x2="920" y2="580"/>
+            <line x1="1280" y1="520" x2="1280" y2="580"/>
+          </g>
+          <g class="rail-dot">
+            <circle cx="200" cy="520" r="3"/><circle cx="560" cy="520" r="3"/>
+            <circle cx="920" cy="520" r="3"/><circle cx="1280" cy="520" r="3"/>
+            <circle cx="1460" cy="150" r="3"/>
+          </g>
+
+          <!-- ===== ROW A ===== -->
+
+          <!-- A1 CONFIG -->
+          <g transform="translate(45,250)">
+            <rect width="310" height="260" class="box-fill box-line"/>
+            <text x="18" y="24" class="t-eyebrow">PLATFORM 01</text>
+            <text x="18" y="45" class="t-title">Config</text>
+            <line x1="18" y1="58" x2="292" y2="58" class="divider"/>
+            <text x="18" y="82" class="t-path">domain/southern_railway.yaml</text>
+            <text x="18" y="98" class="t-desc">departments &middot; skills &middot; roles &middot; shifts</text>
+            <text x="18" y="126" class="t-path">config/scenarios/*.yaml &times;8</text>
+            <text x="18" y="142" class="t-desc">deltas from normal_weekday.yaml</text>
+            <text x="18" y="170" class="t-path">core/config.py</text>
+            <text x="18" y="186" class="t-desc">loads YAML &rarr; typed Domain/Scenario</text>
+          </g>
+
+          <!-- A2 GENERATIVE WORLD -->
+          <g transform="translate(405,250)">
+            <rect width="310" height="260" class="box-fill box-line"/>
+            <text x="18" y="24" class="t-eyebrow">PLATFORM 02</text>
+            <text x="18" y="45" class="t-title">Generative world</text>
+            <line x1="18" y1="58" x2="292" y2="58" class="divider"/>
+            <text x="18" y="80" class="t-path">demand/model.py</text>
+            <text x="18" y="96" class="t-desc">intensity &rarr; NB booking &rarr; CNF/RAC/WL</text>
+            <text x="18" y="118" class="t-path">distributions/library.py</text>
+            <text x="18" y="134" class="t-desc">NB &middot; lognormal &middot; Beta-Binomial &middot; Hawkes</text>
+            <text x="18" y="156" class="t-path">disruptions/generators.py</text>
+            <text x="18" y="172" class="t-desc">Hawkes cascades, branching ratio &lt; 1</text>
+            <text x="18" y="194" class="t-path">processes/templates.py</text>
+            <text x="18" y="210" class="t-desc">activity graphs: turnaround, repair&hellip;</text>
+          </g>
+
+          <!-- A3 WORKFORCE -->
+          <g transform="translate(765,250)">
+            <rect width="310" height="260" class="box-fill box-line"/>
+            <text x="18" y="24" class="t-eyebrow">PLATFORM 03</text>
+            <text x="18" y="45" class="t-title">Workforce</text>
+            <line x1="18" y1="58" x2="292" y2="58" class="divider"/>
+            <text x="18" y="82" class="t-path">workforce/population.py</text>
+            <text x="18" y="98" class="t-desc">build_workforce &middot; absence &middot; fatigue</text>
+            <text x="18" y="126" class="t-path">workforce/schedule.py</text>
+            <text x="18" y="142" class="t-desc">Roster: shift plan, overtime</text>
+            <text x="18" y="170" class="t-path">entities/core.py</text>
+            <text x="18" y="186" class="t-desc">generic Worker/Task &mdash; no railway terms</text>
+          </g>
+
+          <!-- A4 DECISION LOOP -->
+          <g transform="translate(1125,250)">
+            <rect width="310" height="260" class="box-fill box-line"/>
+            <text x="18" y="24" class="t-eyebrow">PLATFORM 04</text>
+            <text x="18" y="45" class="t-title">Decision loop</text>
+            <line x1="18" y1="58" x2="292" y2="58" class="divider"/>
+            <text x="18" y="82" class="t-path">next_epoch() &rarr; DISPATCH</text>
+            <text x="18" y="98" class="t-desc">task with &ge;1 eligible worker</text>
+            <text x="18" y="126" class="t-path">next_epoch() &rarr; STAFFING</text>
+            <text x="18" y="142" class="t-desc">fires at each shift boundary</text>
+            <text x="18" y="170" class="t-path">apply_dispatch/apply_staffing</text>
+            <text x="18" y="186" class="t-desc">claims worker synchronously</text>
+          </g>
+
+          <!-- ===== ROW B ===== -->
+
+          <!-- B1 CONTROL INTERFACE -->
+          <g transform="translate(45,580)">
+            <rect width="310" height="260" class="box-fill-alt box-line"/>
+            <text x="18" y="24" class="t-eyebrow">PLATFORM 05</text>
+            <text x="18" y="45" class="t-title">Control interface</text>
+            <line x1="18" y1="58" x2="292" y2="58" class="divider"/>
+            <text x="18" y="82" class="t-path">rl/environment/env_a.py</text>
+            <text x="18" y="98" class="t-desc">Gymnasium Env, obs, action_masks()</text>
+            <text x="18" y="126" class="t-path">rl/policies/baselines.py</text>
+            <text x="18" y="142" class="t-desc">random &middot; greedy &middot; wfm_heuristic</text>
+            <rect x="14" y="158" width="282" height="40" class="stub-box"/>
+            <text x="18" y="176" class="t-path" style="fill:var(--stub)">rl/action &middot; observation &middot; reward</text>
+            <text x="18" y="192" class="t-stub">empty packages &mdash; unused scaffolding</text>
+          </g>
+
+          <!-- B2 STATE & FEEDBACK -->
+          <g transform="translate(405,580)">
+            <rect width="310" height="260" class="box-fill-alt box-line"/>
+            <text x="18" y="24" class="t-eyebrow">PLATFORM 06</text>
+            <text x="18" y="45" class="t-title">State &amp; feedback</text>
+            <line x1="18" y1="58" x2="292" y2="58" class="divider"/>
+            <text x="18" y="78" class="t-path">state/true_state.py</text>
+            <text x="18" y="94" class="t-desc">latent experience/demand &mdash; never exposed</text>
+            <text x="18" y="114" class="t-path">feedback/experience.py</text>
+            <text x="18" y="130" class="t-desc">reality &rarr; latent e &isin; [0,1]</text>
+            <text x="18" y="150" class="t-path">feedback/surveys.py</text>
+            <text x="18" y="166" class="t-desc">~6% response, delayed, gated</text>
+            <text x="18" y="186" class="t-path">feedback/performance.py</text>
+            <text x="18" y="202" class="t-desc">cut at shift boundaries only</text>
+          </g>
+
+          <!-- B3 METRICS & LOG -->
+          <g transform="translate(765,580)">
+            <rect width="310" height="260" class="box-fill-alt box-line"/>
+            <text x="18" y="24" class="t-eyebrow">PLATFORM 07</text>
+            <text x="18" y="45" class="t-title">Metrics &amp; log</text>
+            <line x1="18" y1="58" x2="292" y2="58" class="divider"/>
+            <text x="18" y="86" class="t-path">metrics/costs.py</text>
+            <text x="18" y="102" class="t-desc">labour &middot; overtime &middot; reserve &middot; SLA &middot; rework</text>
+            <text x="18" y="132" class="t-path">metrics/event_log.py</text>
+            <text x="18" y="148" class="t-desc">PM4Py-compatible XES rows</text>
+            <text x="18" y="164" class="t-desc">+ running KPIAccumulator</text>
+          </g>
+
+          <!-- B4 OUTER LOOP & TOOLS -->
+          <g transform="translate(1125,580)">
+            <rect width="310" height="260" class="box-fill-alt box-line"/>
+            <text x="18" y="24" class="t-eyebrow">PLATFORM 08</text>
+            <text x="18" y="45" class="t-title">Outer loop &amp; tools</text>
+            <line x1="18" y1="58" x2="292" y2="58" class="divider"/>
+            <text x="18" y="78" class="t-path">experiments/runners/</text>
+            <text x="18" y="94" class="t-desc">run_sim.py &middot; run_baselines.py</text>
+            <text x="18" y="114" class="t-path">analysis/validation/</text>
+            <text x="18" y="130" class="t-desc">validate.py &middot; diagnose.py</text>
+            <text x="18" y="150" class="t-path">viz/ &middot; tests/</text>
+            <text x="18" y="166" class="t-desc">dependency-free viewer &middot; 47 tests</text>
+            <text x="18" y="186" class="t-stub">+ data/generators/, analysis/plots/ &mdash; empty</text>
+          </g>
+
+        </svg>
+      </div>
+      <figcaption>Eight subsystems radiate from the engine on two concourses: the world that manufactures work (A), and the tooling that decides on it, measures it and watches it (B). Dashed boxes are unreferenced scaffolding.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>02 &middot; What happens at one decision epoch</h2>
+      <span class="section-note">the mechanism inside &ldquo;Platform 04&rdquo; &mdash; from a spawned task to a settled outcome</span>
+    </div>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 1480 250" role="img" aria-label="Sequence diagram of one dispatch decision: a pending task is filtered by is_eligible for hard constraints, ranked by travel proficiency and fatigue, handed to the policy, assigned via apply_dispatch, executed in simulated time, and settled into costs, performance and feedback.">
+          <!-- connecting arrows -->
+          <g class="flow-arrow">
+            <line x1="190" y1="145" x2="248" y2="145"/>
+            <line x1="398" y1="145" x2="456" y2="145"/>
+            <line x1="606" y1="145" x2="664" y2="145"/>
+            <line x1="814" y1="145" x2="872" y2="145"/>
+            <line x1="1022" y1="145" x2="1080" y2="145"/>
+            <line x1="1230" y1="145" x2="1288" y2="145"/>
+          </g>
+          <g class="t-formula" text-anchor="middle">
+            <text x="219" y="136">spawn</text>
+            <text x="427" y="136">mask</text>
+            <text x="635" y="136">rank</text>
+            <text x="843" y="136">choose</text>
+            <text x="1051" y="136">assign</text>
+            <text x="1259" y="136">run</text>
+          </g>
+          <g fill="none" class="flow-arrow">
+            <polygon points="248,145 240,141 240,149" style="fill:var(--rail-soft)"/>
+            <polygon points="456,145 448,141 448,149" style="fill:var(--rail-soft)"/>
+            <polygon points="664,145 656,141 656,149" style="fill:var(--rail-soft)"/>
+            <polygon points="872,145 864,141 864,149" style="fill:var(--rail-soft)"/>
+            <polygon points="1080,145 1072,141 1072,149" style="fill:var(--rail-soft)"/>
+            <polygon points="1288,145 1280,141 1280,149" style="fill:var(--rail-soft)"/>
+          </g>
+
+          <!-- stage 1 -->
+          <g transform="translate(40,75)">
+            <rect width="150" height="140" class="flow-box"/>
+            <text x="12" y="22" class="flow-num">01</text>
+            <text x="12" y="42" class="t-stage">Task pending</text>
+            <text x="12" y="66" class="t-formula">spawned by a world</text>
+            <text x="12" y="80" class="t-formula">process &mdash; footfall,</text>
+            <text x="12" y="94" class="t-formula">disruption, departure</text>
+          </g>
+          <!-- stage 2 -->
+          <g transform="translate(248,75)">
+            <rect width="150" height="140" class="flow-box"/>
+            <text x="12" y="22" class="flow-num">02</text>
+            <text x="12" y="42" class="t-stage">is_eligible()</text>
+            <text x="12" y="66" class="t-formula">absent &middot; busy &middot;</text>
+            <text x="12" y="80" class="t-formula">unqualified &middot; off-shift</text>
+            <text x="12" y="94" class="t-formula">&middot; too far &rarr; excluded</text>
+          </g>
+          <!-- stage 3 -->
+          <g transform="translate(456,75)">
+            <rect width="150" height="140" class="flow-box"/>
+            <text x="12" y="22" class="flow-num">03</text>
+            <text x="12" y="42" class="t-stage">rank_candidates()</text>
+            <text x="12" y="66" class="t-formula">travel &minus; 25&middot;prof</text>
+            <text x="12" y="80" class="t-formula">+ 8&middot;fatigue</text>
+            <text x="12" y="94" class="t-formula">top 10, deterministic</text>
+          </g>
+          <!-- stage 4 -->
+          <g transform="translate(664,75)">
+            <rect width="150" height="140" class="flow-box"/>
+            <text x="12" y="22" class="flow-num">04</text>
+            <text x="12" y="42" class="t-stage">policy.act()</text>
+            <text x="12" y="66" class="t-formula">random &middot; greedy &middot;</text>
+            <text x="12" y="80" class="t-formula">wfm_heuristic &mdash;</text>
+            <text x="12" y="94" class="t-formula">pick index, or defer</text>
+          </g>
+          <!-- stage 5 -->
+          <g transform="translate(872,75)">
+            <rect width="150" height="140" class="flow-box"/>
+            <text x="12" y="22" class="flow-num">05</text>
+            <text x="12" y="42" class="t-stage">apply_dispatch()</text>
+            <text x="12" y="66" class="t-formula">worker claimed</text>
+            <text x="12" y="80" class="t-formula">synchronously &mdash;</text>
+            <text x="12" y="94" class="t-formula">status &rarr; IN_PROGRESS</text>
+          </g>
+          <!-- stage 6 -->
+          <g transform="translate(1080,75)">
+            <rect width="150" height="140" class="flow-box"/>
+            <text x="12" y="22" class="flow-num">06</text>
+            <text x="12" y="42" class="t-stage">execute_task()</text>
+            <text x="12" y="66" class="t-formula">SimPy yields</text>
+            <text x="12" y="80" class="t-formula">travel + duration</text>
+            <text x="12" y="94" class="t-formula">(Lognormal &times; skill)</text>
+          </g>
+          <!-- stage 7 -->
+          <g transform="translate(1288,75)">
+            <rect width="150" height="140" class="flow-box" style="fill:var(--rail);stroke:var(--rail)"/>
+            <text x="12" y="22" class="flow-num" style="fill:var(--surface)">07</text>
+            <text x="12" y="42" class="t-stage" style="fill:var(--surface)">Outcome</text>
+            <text x="12" y="66" class="t-formula" style="fill:var(--surface);opacity:.85">completed or</text>
+            <text x="12" y="80" class="t-formula" style="fill:var(--surface);opacity:.85">breached &rarr; costs,</text>
+            <text x="12" y="94" class="t-formula" style="fill:var(--surface);opacity:.85">performance, feedback</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>Eligibility is a hard mask, not a preference &mdash; an ineligible worker is never a candidate. Only the last stage writes anything the outer loop can score.</figcaption>
+    </figure>
+  </section>
+
+  <div class="ticket">
+    <span class="mark">SCOPE&nbsp;NOTE</span>
+    <p>
+      The <strong>Control interface</strong> (platform 05) is deliberately unfinished by design, not by accident:
+      <code>random</code>, <code>greedy</code> and <code>wfm_heuristic</code> are hand-written rules that exist only
+      to make the simulation runnable end to end. No learning is wired in &mdash; <code>rl/action</code>,
+      <code>rl/observation</code> and <code>rl/reward</code> sit empty, and <code>stable-baselines3</code> is
+      commented out of <code>requirements.txt</code> &mdash; because the project's stated priority is getting the
+      generative world (platforms 01&ndash;04) right before anything is asked to learn from it.
+    </p>
+  </div>
+
+  <footer>
+    <span>workforce-optimisation &middot; southern_railway [SYNTH] domain skin</span>
+    <span>schematic drawn from source, not from documentation</span>
+  </footer>
+
+</div>
