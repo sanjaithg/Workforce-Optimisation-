@@ -104,6 +104,10 @@ td { padding: 6px; border-top: 1px solid var(--line); font-variant-numeric: tabu
 .dec { font-size: 12px; padding: 4px 8px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8px; }
 .dec .who { color: var(--good); font-variant-numeric: tabular-nums; }
 .dec .who.defer { color: var(--warn); }
+.dec .rw { font-variant-numeric: tabular-nums; font-size: 11px; padding: 1px 6px; border-radius: 4px; background: var(--panel2); cursor: default; }
+.dec .rw.pos { color: var(--good); }
+.dec .rw.neg { color: var(--bad); }
+.dec .rw.flat { color: var(--dim); }
 
 #compare table { font-size: 12px; }
 .empty { color: var(--dim); font-size: 12px; padding: 10px 0; }

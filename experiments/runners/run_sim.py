@@ -17,10 +17,16 @@ from simulation.core.config import available_scenarios
 
 
 def run_episode(scenario: str, policy_name: str, seed: int, trace_path: str | None = None,
-                verbose: bool = True, max_steps: int = 20000):
+                verbose: bool = True, max_steps: int = 20000, model_path: str | None = None):
     env = WorkforceEnvA(scenario=scenario, seed=seed,
                         collect_trace=trace_path is not None, max_steps=max_steps)
-    policy = build_policy(policy_name, seed=seed)
+    if policy_name == "learned":
+        from rl.policies.learned import LearnedPolicy
+        if not model_path:
+            raise ValueError("--policy learned requires --model-path")
+        policy = LearnedPolicy.from_checkpoint(model_path)
+    else:
+        policy = build_policy(policy_name, seed=seed)
     obs, _ = env.reset(seed=seed)
 
     total_reward = 0.0
@@ -93,12 +99,15 @@ def write_trace(env, path: str, result: dict) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description="Run one Environment A episode.")
     ap.add_argument("--scenario", default="normal_weekday", choices=available_scenarios())
-    ap.add_argument("--policy", default="greedy", choices=["random", "greedy", "wfm_heuristic"])
+    ap.add_argument("--policy", default="greedy",
+                    choices=["random", "greedy", "wfm_heuristic", "learned"])
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--trace", default=None, help="write a visualiser trace JSON here")
+    ap.add_argument("--model-path", default=None, help="checkpoint path, required for --policy learned")
     ap.add_argument("--quiet", action="store_true")
     args = ap.parse_args()
-    run_episode(args.scenario, args.policy, args.seed, args.trace, verbose=not args.quiet)
+    run_episode(args.scenario, args.policy, args.seed, args.trace, verbose=not args.quiet,
+                model_path=args.model_path)
 
 
 if __name__ == "__main__":

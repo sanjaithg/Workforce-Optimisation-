@@ -71,8 +71,12 @@ xdg-open viz/index.html      # or: open viz/index.html
 
 The visualiser is a dependency-free local page. It gives you a play/scrub clock,
 live per-department load, per-station queues, the event feed with cascades
-highlighted, the decision log, and the synthetic feedback panel. Load a second
-trace via **Compare** to put two runs side by side on the same seed.
+highlighted, the decision log, and the synthetic feedback panel. Every dispatch/
+staffing line in the decision log carries a green/red **reward pill** — the
+step's reward and its 7-term decomposition (completed, breached, labour,
+overtime, backlog, wait, balance penalty), so you can see *why* a decision
+scored the way it did, not just what it was. Load a second trace via
+**Compare** to put two runs side by side on the same seed.
 
 ### Check that the world behaves sensibly
 
@@ -258,12 +262,64 @@ viz/                 zero-dependency interactive run viewer
 
 ### Note on the `rl/` directory
 
-The Gymnasium wrapper and the three simple policies (`random`, `greedy`,
-`wfm_heuristic`) exist because the simulation needs *something* to make dispatch
-and staffing decisions in order to run at all. **No learning is implemented and
-none is intended at this stage** — the priority is getting the simulated world
-right first. The policies are deterministic rules used as drivers and as
-reference points, nothing more.
+`rl/policies/baselines.py` has three deterministic policies (`random`, `greedy`,
+`wfm_heuristic`) that need only numpy — they exist because the simulation needs
+*something* to make dispatch and staffing decisions in order to run at all, and
+they double as reference points for any learned policy.
+
+`rl/environment/env_a.py` is the Gymnasium wrapper around the engine. Its reward
+is a 7-term decomposition (completed, breached, labour, overtime, backlog, wait,
+balance penalty) that also gets written back into `trace_decisions` so the
+visualiser can show why a step scored the way it did (see **Quick start**
+above).
+
+On top of that there's a minimal online-RL path, gated behind optional
+dependencies so the core simulator stays numpy-only:
+
+- **`rl/environment/randomized.py`** — wraps `WorkforceEnvA` to reseed and
+  optionally re-scenario on every `reset()`. Training against one fixed
+  scenario/seed lets the policy memorise a single world instead of learning a
+  generally good one; this is what makes training actually generalise.
+- **`experiments/runners/build_offline_dataset.py`** — rolls a chosen policy
+  out across scenarios into a combined [Minari](https://minari.farama.org/)
+  dataset, normalising each step's `info` dict to one flat schema (scenario,
+  decision kind, the same reward decomposition as above) so offline-RL
+  algorithms (or plain EDA) can condition on *why* a step scored the way it
+  did. Needs `pip install "minari[create,hdf5]"`.
+  ```bash
+  .venv/bin/python -m experiments.runners.build_offline_dataset \
+      --episodes-per-scenario 20 --policy wfm_heuristic \
+      --dataset-id workforce/wfm_heuristic-v0
+  ```
+- **`experiments/runners/train_rl.py`** — trains a masked PPO
+  (`sb3-contrib`'s `MaskablePPO`, so illegal actions are excluded rather than
+  penalised) against `RandomizedResetEnv`. Deliberately minimal: it proves the
+  env/masking/SB3 wiring works end to end and produces a checkpoint, not a
+  tuned reward or a policy that's been shown to beat the heuristics — that
+  comparison is the next step. Needs `pip install stable-baselines3 sb3-contrib`
+  (and, on a CPU-only machine, install torch's CPU wheel first — see note
+  below — or `pip install` will pull several GB of unused CUDA packages).
+  ```bash
+  .venv/bin/python -m experiments.runners.train_rl \
+      --scenarios normal_weekday,high_demand,high_absence,combined_stress \
+      --timesteps 400000 --out out/models/ppo_mixed
+  ```
+- **`rl/policies/learned.py`** — wraps a saved checkpoint (`LearnedPolicy`)
+  behind the same `Policy` interface as the baselines, so it drops straight
+  into `run_sim.py` / `run_baselines.py` / `diagnose.py`:
+  ```bash
+  .venv/bin/python -m experiments.runners.run_sim --scenario normal_weekday \
+      --policy learned --model-path out/models/ppo_mixed --seed 0
+  ```
+
+If you don't need any of this, ignore it — `requirements.txt` keeps these
+dependencies commented out, and everything above stays out of the way until
+you `pip install` the relevant block. If you do install `stable-baselines3` on
+a machine without an NVIDIA GPU, pin the CPU wheel explicitly first, since
+plain `pip install torch` defaults to the ~3GB CUDA build:
+```bash
+.venv/bin/pip install torch --index-url https://download.pytorch.org/whl/cpu
+```
 
 ---
 

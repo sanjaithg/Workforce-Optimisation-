@@ -221,7 +221,7 @@ class WorkforceEnvA(gym.Env):
         e = self.engine
         epoch = e.current_epoch
         action = int(action)
-        info: dict = {}
+        info: dict = {"scenario": self.scenario_cfg.id}
         before = {"completed": e.kpis.tasks_completed, "breached": e.kpis.tasks_breached,
                   "labour_cost": e.kpis.labour_cost, "overtime_cost": e.kpis.overtime_cost}
 
@@ -258,6 +258,12 @@ class WorkforceEnvA(gym.Env):
         e.current_epoch = e.next_epoch()
         self.steps += 1
         reward = self._reward(info, before)
+        # Join the reward this step earned back onto the decision that earned it,
+        # so a trace can answer "was *that* dispatch/staffing call good?" instead of
+        # only showing the aggregate episode return.
+        if e.collect_trace and e.trace_decisions:
+            e.trace_decisions[-1]["reward"] = round(reward, 4)
+            e.trace_decisions[-1]["reward_components"] = info.get("reward_components")
         terminated = e.current_epoch is None or e.done
         truncated = self.steps >= self.max_steps
         obs = self._build_observation()

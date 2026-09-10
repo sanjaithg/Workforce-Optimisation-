@@ -122,6 +122,15 @@ function renderEvents(now) {
   }).join("");
 }
 
+function rewardBadge(d) {
+  if (typeof d.reward !== "number") return "";
+  const cls = d.reward > 0.01 ? "pos" : d.reward < -0.01 ? "neg" : "flat";
+  const parts = d.reward_components
+    ? Object.entries(d.reward_components).map(([k, v]) => `${k}: ${v}`).join("\n")
+    : "";
+  return `<span class="rw ${cls}" title="${parts}">${d.reward > 0 ? "+" : ""}${d.reward.toFixed(2)}</span>`;
+}
+
 function renderDecisions(now) {
   const ds = (trace.decisions || []).filter((d) => d.t <= now).slice(-60).reverse();
   if (!ds.length) { $("decisions").innerHTML = '<div class="empty">no decisions yet</div>'; return; }
@@ -130,10 +139,10 @@ function renderDecisions(now) {
       const cls = d.chosen === "defer" ? "defer" : "";
       return `<div class="dec"><span>${fmtClock(trace.meta.start, d.t).slice(7)}
         · ${d.activity} @ ${d.location} (${d.n_candidates} eligible)</span>
-        <span class="who ${cls}">${d.chosen}</span></div>`;
+        <span class="who ${cls}">${d.chosen}</span>${rewardBadge(d)}</div>`;
     }
     return `<div class="dec"><span>${fmtClock(trace.meta.start, d.t).slice(7)}
-      · staffing ${d.department}</span><span class="who">${d.chosen} (${d.changed})</span></div>`;
+      · staffing ${d.department}</span><span class="who">${d.chosen} (${d.changed})</span>${rewardBadge(d)}</div>`;
   }).join("");
 }
 

@@ -7,8 +7,12 @@ pyyaml>=6.0
 matplotlib>=3.8
 pytest>=8.0
 
-# Optional, only needed for the gated PPO phase:
+# Optional, only needed for the gated PPO phase (experiments/runners/train_rl.py):
 # stable-baselines3>=2.3
 # sb3-contrib>=2.3
 # Optional, only for process-mining analysis of generated event logs:
 # pm4py>=2.7
+# Optional, only needed to build offline-RL datasets (Minari format). "create"
+# pulls in jax (Minari's episode buffer uses it internally), "hdf5" pulls in h5py
+# (the on-disk dataset format):
+# minari[create,hdf5]>=0.5
